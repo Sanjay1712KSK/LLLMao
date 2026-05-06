@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import logging
 import shutil
 import uuid
 from pathlib import Path
@@ -22,6 +23,7 @@ from app.services import chat_service
 from app.services.ollama_service import OllamaService, OllamaUnavailableError
 
 router = APIRouter(tags=["rag"])
+logger = logging.getLogger("lllmao.rag")
 
 
 def _file_type(filename: str) -> str:
@@ -145,6 +147,7 @@ async def stream_rag_chat(payload: RagChatRequest, db: Session = Depends(get_db)
     try:
         chunks = await RagRetrievalPipeline(settings.rag_embedding_model).retrieve(payload.message, settings.rag_retrieval_limit)
     except (OllamaUnavailableError, VectorStoreUnavailableError) as exc:
+        logger.warning("rag_retrieval_failed", extra={"chat_id": payload.chat_id, "error": str(exc)})
         raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail=str(exc)) from exc
 
     chat_service.add_message(db, payload.chat_id, "user", payload.message)
@@ -162,6 +165,7 @@ async def stream_rag_chat(payload: RagChatRequest, db: Session = Depends(get_db)
             "chunk_index": chunk.chunk_index,
             "source_type": chunk.source_type,
             "distance": chunk.distance,
+            "score": chunk.score,
         }
         for chunk in chunks
     ]

@@ -1,6 +1,10 @@
+import logging
+
 from app.database.session import Base, engine
 from app.models import chat, multimodal, rag, workspace
 from sqlalchemy import inspect, text
+
+logger = logging.getLogger("lllmao.database")
 
 
 def init_db() -> None:
@@ -8,8 +12,13 @@ def init_db() -> None:
     _ = multimodal
     _ = rag
     _ = workspace
-    Base.metadata.create_all(bind=engine)
-    migrate_sqlite_schema()
+    try:
+        Base.metadata.create_all(bind=engine)
+        migrate_sqlite_schema()
+        sqlite_integrity_check()
+    except Exception:
+        logger.exception("database_initialization_failed")
+        raise
 
 
 def migrate_sqlite_schema() -> None:
@@ -27,3 +36,16 @@ def migrate_sqlite_schema() -> None:
         if "updated_at" not in columns:
             connection.execute(text("ALTER TABLE chats ADD COLUMN updated_at DATETIME"))
         connection.execute(text("UPDATE chats SET updated_at = COALESCE(created_at, CURRENT_TIMESTAMP) WHERE updated_at IS NULL"))
+
+
+def sqlite_integrity_check() -> None:
+    if engine.dialect.name != "sqlite":
+        return
+    try:
+        with engine.connect() as connection:
+            result = connection.execute(text("PRAGMA quick_check")).scalar()
+        if result != "ok":
+            logger.warning("sqlite_quick_check_failed", extra={"result": result})
+    except Exception:
+        logger.exception("sqlite_quick_check_error")
+        raise

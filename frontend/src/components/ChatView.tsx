@@ -1,12 +1,17 @@
 import clsx from 'clsx';
+import { BookOpen, FileText, ImagePlus, RotateCw, TerminalSquare } from 'lucide-react';
 
 import { useAutoScroll } from '../hooks/useAutoScroll';
 import { useChatStore } from '../store/chatStore';
+import { useWorkspaceStore } from '../store/workspaceStore';
 import type { RetrievalSource } from '../types/api';
 import { MarkdownMessage } from './MarkdownMessage';
 
 export function ChatView() {
-  const { messages, isStreaming, health, error } = useChatStore();
+  const { messages, isStreaming, health, error, bootstrap } = useChatStore();
+  const activeWorkspaceId = useWorkspaceStore((state) => state.activeWorkspaceId);
+  const workspaces = useWorkspaceStore((state) => state.workspaces);
+  const activeWorkspace = workspaces.find((workspace) => workspace.id === activeWorkspaceId);
   const bottomRef = useAutoScroll(messages.map((message) => message.content).join('|'));
 
   if (!health.ok) {
@@ -26,10 +31,7 @@ export function ChatView() {
     <main className="min-h-0 flex-1 overflow-y-auto scroll-smooth px-4 py-6">
       <div className="mx-auto max-w-4xl space-y-6">
         {!messages.length && (
-          <div className="py-20 text-center">
-            <h1 className="text-3xl font-semibold tracking-normal text-ink">What are we building locally?</h1>
-            <p className="mt-3 text-sm text-muted">Chat with already-installed Ollama models. No cloud inference, no model management.</p>
-          </div>
+          <EmptyState workspaceName={activeWorkspace?.name} />
         )}
         {messages.map((message) => (
           <article
@@ -66,20 +68,65 @@ export function ChatView() {
                   )}
                 </>
               ) : (
-                <span className="inline-flex items-center gap-1 text-muted">
-                  <span className="h-1.5 w-1.5 rounded-full bg-muted" />
-                  <span className="h-1.5 w-1.5 rounded-full bg-muted/70" />
-                  <span className="h-1.5 w-1.5 rounded-full bg-muted/40" />
-                </span>
+                <TypingIndicator />
               )}
             </div>
           </article>
         ))}
         {isStreaming && <div className="px-14 text-xs text-muted">Streaming from Ollama...</div>}
-        {error && <div className="rounded-lg border border-red-500/30 bg-red-500/10 p-3 text-sm text-red-200">{error}</div>}
+        {error && (
+          <div className="rounded-lg border border-red-500/30 bg-red-500/10 p-3 text-sm text-red-100">
+            <div className="flex items-center justify-between gap-3">
+              <span>{error}</span>
+              <button className="inline-flex items-center gap-2 rounded-md border border-red-400/30 px-2 py-1 text-xs hover:bg-red-500/10" type="button" onClick={() => void bootstrap()}>
+                <RotateCw size={13} /> Retry
+              </button>
+            </div>
+          </div>
+        )}
         <div ref={bottomRef} />
       </div>
     </main>
+  );
+}
+
+function EmptyState({ workspaceName }: { workspaceName?: string }) {
+  const cards = [
+    { icon: TerminalSquare, title: 'Ask about your ROS2 workspace', body: workspaceName ? `Using ${workspaceName} when workspace mode is enabled.` : 'Connect a workspace from the sidebar to ground answers in code.' },
+    { icon: FileText, title: 'Upload PDFs for contextual retrieval', body: 'Use knowledge base mode for local document-backed answers.' },
+    { icon: ImagePlus, title: 'Analyze screenshots with multimodal models', body: 'Drop PNG, JPG, or WEBP images here before sending a prompt.' },
+    { icon: BookOpen, title: 'Suggested prompt', body: 'Summarize the architecture and call out risky TODOs.' },
+  ];
+
+  return (
+    <div className="py-12">
+      <h1 className="text-3xl font-semibold tracking-normal text-ink">What are we building locally?</h1>
+      <p className="mt-3 max-w-2xl text-sm leading-6 text-muted">Chat with installed Ollama models, workspace context, documents, and images. Everything stays on this machine.</p>
+      <div className="mt-8 grid gap-3 sm:grid-cols-2">
+        {cards.map((card) => {
+          const Icon = card.icon;
+          return (
+            <div key={card.title} className="rounded-lg border border-line bg-panel p-4">
+              <div className="flex items-center gap-2 text-sm font-medium text-ink">
+                <Icon size={16} className="text-accent" />
+                {card.title}
+              </div>
+              <p className="mt-2 text-xs leading-5 text-muted">{card.body}</p>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+function TypingIndicator() {
+  return (
+    <span className="inline-flex h-7 items-center gap-1 text-muted" aria-label="Assistant is typing">
+      <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-muted" />
+      <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-muted/70 [animation-delay:120ms]" />
+      <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-muted/40 [animation-delay:240ms]" />
+    </span>
   );
 }
 

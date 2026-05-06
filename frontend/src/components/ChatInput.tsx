@@ -1,11 +1,13 @@
 import { BookOpen, FolderGit2, ImagePlus, Send, Square, X } from 'lucide-react';
 import { useRef, useState } from 'react';
+import clsx from 'clsx';
 
 import { useChatStore } from '../store/chatStore';
 import { useMultimodalStore } from '../store/multimodalStore';
 
 export function ChatInput() {
   const [value, setValue] = useState('');
+  const [dragActive, setDragActive] = useState(false);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const {
     sendMessage,
@@ -18,7 +20,7 @@ export function ChatInput() {
     setUseKnowledgeBase,
     setUseWorkspace,
   } = useChatStore();
-  const { pendingImages, addImages, removeImage } = useMultimodalStore();
+  const { pendingImages, addImages, removeImage, error, errorDetails } = useMultimodalStore();
 
   const submit = async () => {
     if (!value.trim() || isStreaming) return;
@@ -29,14 +31,25 @@ export function ChatInput() {
 
   return (
     <div
-      className="sticky bottom-0 border-t border-line bg-surface/95 px-4 py-4 backdrop-blur"
-      onDragOver={(event) => event.preventDefault()}
+      className={clsx('sticky bottom-0 border-t bg-surface/95 px-4 py-4 backdrop-blur', dragActive ? 'border-accent' : 'border-line')}
+      onDragEnter={(event) => {
+        event.preventDefault();
+        setDragActive(true);
+      }}
+      onDragOver={(event) => {
+        event.preventDefault();
+        setDragActive(true);
+      }}
+      onDragLeave={(event) => {
+        if (event.currentTarget === event.target) setDragActive(false);
+      }}
       onDrop={(event) => {
         event.preventDefault();
+        setDragActive(false);
         addImages(Array.from(event.dataTransfer.files));
       }}
     >
-      <div className="mx-auto max-w-4xl rounded-xl border border-line bg-panel p-2 shadow-soft">
+      <div className={clsx('mx-auto max-w-4xl rounded-xl border bg-panel p-2 shadow-soft transition-colors', dragActive ? 'border-accent bg-accent/5' : 'border-line')}>
         <div className="mb-2 flex items-center justify-between px-2">
           <div className="flex flex-wrap gap-2">
           <button
@@ -80,22 +93,44 @@ export function ChatInput() {
             onChange={(event) => addImages(Array.from(event.target.files ?? []))}
           />
         </div>
+        {dragActive && (
+          <div className="mb-2 rounded-lg border border-dashed border-accent bg-accent/10 px-3 py-2 text-xs text-accent">
+            Drop images to attach them to this message.
+          </div>
+        )}
         {pendingImages.length > 0 && (
-          <div className="mb-2 flex gap-2 overflow-x-auto px-2">
+          <div className="mb-2 flex gap-3 overflow-x-auto px-2 pb-1">
             {pendingImages.map((image, index) => (
-              <div key={image.previewUrl} className="group relative h-16 w-24 shrink-0 overflow-hidden rounded-lg border border-line bg-surface">
+              <div key={image.previewUrl} className="group relative h-24 w-36 shrink-0 overflow-hidden rounded-lg border border-line bg-surface">
                 <img className="h-full w-full object-cover" src={image.previewUrl} alt={image.file.name} />
                 <button
-                  className="absolute right-1 top-1 rounded bg-black/70 p-1 text-white opacity-0 group-hover:opacity-100"
+                  className="absolute right-1 top-1 rounded-md bg-black/75 p-1 text-white opacity-90 hover:bg-red-500"
                   type="button"
                   title="Remove image"
                   onClick={() => removeImage(index)}
                 >
-                  <X size={12} />
+                  <X size={14} />
                 </button>
-                <div className="absolute bottom-0 left-0 right-0 bg-black/70 px-1 py-0.5 text-[10px] text-white">{image.status}</div>
+                <div className="absolute bottom-0 left-0 right-0 bg-black/75 px-2 py-1 text-[11px] text-white">
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="truncate">{image.error || image.status}</span>
+                    {image.status === 'uploading' && <span>{image.progress}%</span>}
+                  </div>
+                  {image.status === 'uploading' && <div className="mt-1 h-1 rounded bg-white/20"><div className="h-full rounded bg-accent" style={{ width: `${image.progress}%` }} /></div>}
+                </div>
               </div>
             ))}
+          </div>
+        )}
+        {error && (
+          <div className="mb-2 rounded-lg border border-red-500/30 bg-red-500/10 px-3 py-2 text-xs text-red-100">
+            {error}
+            {errorDetails && (
+              <details className="mt-1 text-red-100/80">
+                <summary className="cursor-pointer">Technical details</summary>
+                <div className="mt-1 font-mono text-[11px]">{errorDetails}</div>
+              </details>
+            )}
           </div>
         )}
         <div className="flex items-end gap-3">

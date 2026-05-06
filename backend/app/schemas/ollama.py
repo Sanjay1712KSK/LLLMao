@@ -17,6 +17,7 @@ class HealthRead(BaseModel):
     backend_ok: bool = True
     ollama_ok: bool
     database_ok: bool
+    dependencies: dict[str, dict[str, str | bool]] = {}
 
 
 class ChatRequest(BaseModel):

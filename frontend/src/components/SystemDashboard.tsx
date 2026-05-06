@@ -50,7 +50,7 @@ export function SystemDashboard() {
           <Gauge size={17} className="text-accent" />
           Live System
         </div>
-        <p className="mt-1 text-xs text-muted">1s metrics · 5s health checks</p>
+        <p className="mt-1 text-xs text-muted">2s metrics · 7s health checks</p>
       </div>
       <div className="min-h-0 flex-1 space-y-3 overflow-y-auto p-3">
         <Metric label="CPU" value={`${Math.round(stats?.cpu_percent ?? 0)}%`} icon={<Cpu size={15} />} />

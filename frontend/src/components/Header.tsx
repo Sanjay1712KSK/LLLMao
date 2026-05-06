@@ -2,10 +2,13 @@ import { Cpu, Wifi, WifiOff } from 'lucide-react';
 
 import { formatBytes } from '../lib/format';
 import { useChatStore } from '../store/chatStore';
+import { useSystemStore } from '../store/systemStore';
 
 export function Header() {
   const { models, selectedModel, setSelectedModel, health } = useChatStore();
+  const stats = useSystemStore((state) => state.stats);
   const model = models.find((item) => item.name === selectedModel);
+  const gpu = stats?.gpu;
 
   return (
     <header className="flex h-16 shrink-0 items-center justify-between border-b border-line bg-surface/95 px-4 backdrop-blur">
@@ -19,6 +22,11 @@ export function Header() {
         </p>
       </div>
       <div className="flex items-center gap-3">
+        <div className="hidden items-center gap-2 rounded-lg border border-line bg-panel px-2 py-1.5 text-xs text-muted lg:flex xl:hidden">
+          <span>RAM {Math.round(stats?.ram_percent ?? 0)}%</span>
+          <span className="text-line">|</span>
+          <span>GPU {gpu?.utilization_percent != null ? `${Math.round(gpu.utilization_percent)}%` : 'N/A'}</span>
+        </div>
         <select
           className="h-10 max-w-[44vw] rounded-lg border border-line bg-panel px-3 text-sm text-ink outline-none focus:border-accent md:max-w-xs"
           value={selectedModel}

@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { ChatInput } from '../components/ChatInput';
 import { ChatView } from '../components/ChatView';
 import { Header } from '../components/Header';
+import { Notifications } from '../components/Notifications';
 import { Sidebar } from '../components/Sidebar';
 import { SystemDashboard } from '../components/SystemDashboard';
 import { useChatStore } from '../store/chatStore';
@@ -23,6 +24,7 @@ export default function App() {
 
   return (
     <div className="h-screen overflow-hidden bg-surface text-ink">
+      <Notifications />
       <div className="flex h-full">
         <div className="hidden md:block">
           <Sidebar />

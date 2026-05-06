@@ -46,8 +46,12 @@ export const useSystemStore = create<SystemState>((set, get) => ({
     if (get().statsTimer || get().healthTimer) return;
     void get().fetchStats();
     void get().fetchHealth();
-    const statsTimer = window.setInterval(() => void get().fetchStats(), 1000);
-    const healthTimer = window.setInterval(() => void get().fetchHealth(), 5000);
+    const statsTimer = window.setInterval(() => {
+      if (document.visibilityState === 'visible') void get().fetchStats();
+    }, 2000);
+    const healthTimer = window.setInterval(() => {
+      if (document.visibilityState === 'visible') void get().fetchHealth();
+    }, 7000);
     set({ statsTimer, healthTimer });
   },
 

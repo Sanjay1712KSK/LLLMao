@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import logging
 import re
 from dataclasses import dataclass
 
@@ -8,9 +9,12 @@ from sqlalchemy import or_, select
 from sqlalchemy.orm import Session
 
 from app.models import CodeSymbol
+from app.rag.chunking import estimate_tokens
 from app.rag.embeddings import OllamaEmbeddingService
 from app.rag.vectorstore import ChromaVectorStore, VectorStoreUnavailableError
 from app.services.ollama_service import OllamaUnavailableError
+
+logger = logging.getLogger("lllmao.workspace_retrieval")
 
 
 @dataclass(slots=True)
@@ -48,13 +52,18 @@ class WorkspaceRetrievalPipeline:
             haystack = " ".join([item.file_path, item.symbol_name or "", item.chunk_type, item.content[:500]]).lower()
             if any(symbol in haystack for symbol in symbol_boosts):
                 item.score += 0.65
-        return sorted(merged.values(), key=lambda item: item.score, reverse=True)[:limit]
+            if item.file_path.endswith(("package.xml", "CMakeLists.txt", "setup.py", "launch.py")):
+                item.score += 0.22
+            if item.chunk_type in {"function", "class", "launch", "ros2_node"}:
+                item.score += 0.15
+        return self._dedupe(sorted(merged.values(), key=lambda item: item.score, reverse=True))[:limit]
 
     async def _semantic(self, workspace_id: str, query: str, limit: int) -> list[RetrievedCodeChunk]:
         try:
             embedding = await OllamaEmbeddingService(model=self.embedding_model).embed(query)
             rows = ChromaVectorStore(collection_name="lllmao_workspace").query(embedding, limit=limit)
         except (VectorStoreUnavailableError, OllamaUnavailableError):
+            logger.warning("workspace_semantic_retrieval_unavailable", extra={"workspace_id": workspace_id})
             return []
         chunks = []
         for row in rows:
@@ -124,13 +133,33 @@ class WorkspaceRetrievalPipeline:
     def _query_symbols(self, query: str) -> list[str]:
         return [term.lower() for term in re.findall(r"[A-Za-z_][\w/.-]+", query) if len(term) > 2]
 
+    def _dedupe(self, chunks: list[RetrievedCodeChunk]) -> list[RetrievedCodeChunk]:
+        seen: set[tuple[str, int, int] | str] = set()
+        deduped: list[RetrievedCodeChunk] = []
+        for chunk in chunks:
+            key: tuple[str, int, int] | str = (chunk.file_path, chunk.start_line, chunk.end_line)
+            normalized = " ".join(chunk.content.lower().split())
+            content_key = normalized[:1200]
+            if key in seen or content_key in seen:
+                logger.debug("workspace_duplicate_chunk_filtered", extra={"chunk_id": chunk.id, "file_path": chunk.file_path})
+                continue
+            seen.add(key)
+            seen.add(content_key)
+            deduped.append(chunk)
+        return deduped
+
 
 def build_workspace_messages(history: list[dict[str, str]], query: str, chunks: list[RetrievedCodeChunk]) -> list[dict[str, str]]:
     context = []
+    used_tokens = 0
     for index, chunk in enumerate(chunks, start=1):
         symbol = f"::{chunk.symbol_name}" if chunk.symbol_name else ""
+        tokens = estimate_tokens(chunk.content)
+        if used_tokens + tokens > 3200 and context:
+            continue
+        used_tokens += tokens
         context.append(
-            f"[Source {index}: {chunk.file_path}{symbol} lines {chunk.start_line}-{chunk.end_line}, {chunk.language}/{chunk.chunk_type}]\n{chunk.content}"
+            f"[Source {index}: {chunk.file_path}{symbol} lines {chunk.start_line}-{chunk.end_line}, {chunk.language}/{chunk.chunk_type}, score {chunk.score:.2f}]\n{chunk.content}"
         )
     system_prompt = (
         "You are LLLMao, a local workspace-aware development assistant. "

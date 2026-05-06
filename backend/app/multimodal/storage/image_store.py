@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import base64
+import logging
 import shutil
 import uuid
 from pathlib import Path
@@ -10,6 +11,8 @@ from fastapi import UploadFile
 from app.config import get_settings
 from app.models import ImageAsset
 from app.multimodal.image_processing import ImageProcessor
+
+logger = logging.getLogger("lllmao.image_store")
 
 
 class ImageStore:
@@ -28,8 +31,15 @@ class ImageStore:
         thumbnail = self.root / f"{image_id}.thumb.jpg"
         with staging.open("wb") as handle:
             shutil.copyfileobj(file.file, handle)
-        width, height, size_bytes, mime_type = self.processor.normalize(staging, target, thumbnail)
-        staging.unlink(missing_ok=True)
+        try:
+            width, height, size_bytes, mime_type = self.processor.normalize(staging, target, thumbnail)
+        except Exception:
+            logger.exception("image_upload_processing_failed", extra={"filename": safe_name, "chat_id": chat_id})
+            target.unlink(missing_ok=True)
+            thumbnail.unlink(missing_ok=True)
+            raise
+        finally:
+            staging.unlink(missing_ok=True)
         return ImageAsset(
             id=image_id,
             chat_id=chat_id,

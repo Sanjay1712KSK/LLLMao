@@ -16,14 +16,55 @@ import type {
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? 'http://127.0.0.1:8000';
 
+export class ApiError extends Error {
+  code?: string;
+  details?: string;
+  status?: number;
+
+  constructor(message: string, options: { code?: string; details?: string; status?: number } = {}) {
+    super(message);
+    this.name = 'ApiError';
+    this.code = options.code;
+    this.details = options.details;
+    this.status = options.status;
+  }
+}
+
+function parseErrorPayload(raw: string, status?: number): ApiError {
+  try {
+    const payload = JSON.parse(raw) as {
+      error?: boolean;
+      code?: string;
+      message?: string;
+      details?: string;
+      detail?: string | { error?: boolean; code?: string; message?: string; details?: string };
+    };
+    const structured = typeof payload.detail === 'object' ? payload.detail : payload;
+    if (structured?.message) {
+      return new ApiError(structured.message, { code: structured.code, details: structured.details, status });
+    }
+    if (typeof payload.detail === 'string') return new ApiError(payload.detail, { status });
+  } catch {
+    // Fall through to a text error.
+  }
+  return new ApiError(raw || 'Request failed', { status });
+}
+
+async function responseError(response: Response): Promise<ApiError> {
+  return parseErrorPayload(await response.text(), response.status);
+}
+
+function xhrError(request: XMLHttpRequest, fallback: string): ApiError {
+  return parseErrorPayload(request.responseText || fallback || request.statusText, request.status);
+}
+
 async function jsonRequest<T>(path: string, init?: RequestInit): Promise<T> {
   const response = await fetch(`${API_BASE_URL}${path}`, {
     headers: { 'Content-Type': 'application/json', ...(init?.headers ?? {}) },
     ...init,
   });
   if (!response.ok) {
-    const detail = await response.text();
-    throw new Error(detail || response.statusText);
+    throw await responseError(response);
   }
   return response.json() as Promise<T>;
 }
@@ -41,7 +82,7 @@ export const api = {
     jsonRequest<Chat>(`/chats/${chatId}`, { method: 'PATCH', body: JSON.stringify(payload) }),
   deleteChat: async (chatId: number) => {
     const response = await fetch(`${API_BASE_URL}/chats/${chatId}`, { method: 'DELETE' });
-    if (!response.ok) throw new Error(await response.text());
+    if (!response.ok) throw await responseError(response);
   },
   messages: (chatId: number) => jsonRequest<Message[]>(`/messages/${chatId}`),
   documents: () => jsonRequest<KnowledgeDocument[]>('/documents'),
@@ -53,11 +94,11 @@ export const api = {
   reindexWorkspace: (workspaceId: string) => jsonRequest<Workspace>(`/workspace/${workspaceId}/reindex`, { method: 'POST' }),
   disconnectWorkspace: async (workspaceId: string) => {
     const response = await fetch(`${API_BASE_URL}/workspaces/${workspaceId}`, { method: 'DELETE' });
-    if (!response.ok) throw new Error(await response.text());
+    if (!response.ok) throw await responseError(response);
   },
   deleteDocument: async (documentId: string) => {
     const response = await fetch(`${API_BASE_URL}/documents/${documentId}`, { method: 'DELETE' });
-    if (!response.ok) throw new Error(await response.text());
+    if (!response.ok) throw await responseError(response);
   },
   reindexDocument: (documentId: string) => jsonRequest<KnowledgeDocument>(`/documents/${documentId}/reindex`, { method: 'POST' }),
   cancelDocument: (documentId: string) => jsonRequest<KnowledgeDocument>(`/documents/${documentId}/cancel`, { method: 'POST' }),
@@ -74,26 +115,29 @@ export const api = {
         if (request.status >= 200 && request.status < 300) {
           resolve(JSON.parse(request.responseText) as KnowledgeDocument);
         } else {
-          reject(new Error(request.responseText || request.statusText));
+          reject(xhrError(request, 'Upload failed'));
         }
       };
-      request.onerror = () => reject(new Error('Upload failed'));
+      request.onerror = () => reject(new ApiError('Upload failed'));
       request.send(formData);
     }),
-  uploadImage: (file: File, chatId?: number | null) =>
+  uploadImage: (file: File, chatId?: number | null, onProgress?: (progress: number) => void) =>
     new Promise<ImageAsset>((resolve, reject) => {
       const formData = new FormData();
       formData.append('file', file);
       const request = new XMLHttpRequest();
       request.open('POST', `${API_BASE_URL}/images/upload${chatId ? `?chat_id=${chatId}` : ''}`);
+      request.upload.onprogress = (event) => {
+        if (event.lengthComputable) onProgress?.(Math.round((event.loaded / event.total) * 100));
+      };
       request.onload = () => {
         if (request.status >= 200 && request.status < 300) {
           resolve(JSON.parse(request.responseText) as ImageAsset);
         } else {
-          reject(new Error(request.responseText || request.statusText));
+          reject(xhrError(request, 'Image upload failed'));
         }
       };
-      request.onerror = () => reject(new Error('Image upload failed'));
+      request.onerror = () => reject(new ApiError('Image upload failed'));
       request.send(formData);
     }),
   imageThumbnailUrl: (imageId: string) => `${API_BASE_URL}/images/${imageId}/thumbnail`,
@@ -110,14 +154,18 @@ export const api = {
       signal,
     });
     if (!response.ok || !response.body) {
-      throw new Error((await response.text()) || response.statusText);
+      throw await responseError(response);
     }
     const reader = response.body.getReader();
     const decoder = new TextDecoder();
-    while (true) {
-      const { done, value } = await reader.read();
-      if (done) break;
-      onChunk(decoder.decode(value, { stream: true }));
+    try {
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        onChunk(decoder.decode(value, { stream: true }));
+      }
+    } finally {
+      reader.releaseLock();
     }
   },
   streamRagChat: async (
@@ -133,7 +181,7 @@ export const api = {
       signal,
     });
     if (!response.ok || !response.body) {
-      throw new Error((await response.text()) || response.statusText);
+      throw await responseError(response);
     }
     const reader = response.body.getReader();
     const decoder = new TextDecoder();
@@ -149,13 +197,17 @@ export const api = {
       if (event === 'sources') onSources(JSON.parse(data) as RagSource[]);
       if (event === 'token') onChunk(JSON.parse(data) as string);
     };
-    while (true) {
-      const { done, value } = await reader.read();
-      if (done) break;
-      buffer += decoder.decode(value, { stream: true });
-      const events = buffer.split('\n\n');
-      buffer = events.pop() ?? '';
-      events.forEach(dispatchEvent);
+    try {
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        buffer += decoder.decode(value, { stream: true });
+        const events = buffer.split('\n\n');
+        buffer = events.pop() ?? '';
+        events.forEach(dispatchEvent);
+      }
+    } finally {
+      reader.releaseLock();
     }
     if (buffer.trim()) dispatchEvent(buffer);
   },
@@ -172,7 +224,7 @@ export const api = {
       signal,
     });
     if (!response.ok || !response.body) {
-      throw new Error((await response.text()) || response.statusText);
+      throw await responseError(response);
     }
     const reader = response.body.getReader();
     const decoder = new TextDecoder();
@@ -188,13 +240,17 @@ export const api = {
       if (event === 'sources') onSources(JSON.parse(data) as WorkspaceSource[]);
       if (event === 'token') onChunk(JSON.parse(data) as string);
     };
-    while (true) {
-      const { done, value } = await reader.read();
-      if (done) break;
-      buffer += decoder.decode(value, { stream: true });
-      const events = buffer.split('\n\n');
-      buffer = events.pop() ?? '';
-      events.forEach(dispatchEvent);
+    try {
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        buffer += decoder.decode(value, { stream: true });
+        const events = buffer.split('\n\n');
+        buffer = events.pop() ?? '';
+        events.forEach(dispatchEvent);
+      }
+    } finally {
+      reader.releaseLock();
     }
     if (buffer.trim()) dispatchEvent(buffer);
   },
@@ -219,7 +275,7 @@ export const api = {
       signal,
     });
     if (!response.ok || !response.body) {
-      throw new Error((await response.text()) || response.statusText);
+      throw await responseError(response);
     }
     const reader = response.body.getReader();
     const decoder = new TextDecoder();
@@ -235,13 +291,17 @@ export const api = {
       if (event === 'sources') onSources(JSON.parse(data) as WorkspaceSource[]);
       if (event === 'token') onChunk(JSON.parse(data) as string);
     };
-    while (true) {
-      const { done, value } = await reader.read();
-      if (done) break;
-      buffer += decoder.decode(value, { stream: true });
-      const events = buffer.split('\n\n');
-      buffer = events.pop() ?? '';
-      events.forEach(dispatchEvent);
+    try {
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        buffer += decoder.decode(value, { stream: true });
+        const events = buffer.split('\n\n');
+        buffer = events.pop() ?? '';
+        events.forEach(dispatchEvent);
+      }
+    } finally {
+      reader.releaseLock();
     }
     if (buffer.trim()) dispatchEvent(buffer);
   },

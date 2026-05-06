@@ -1,3 +1,3 @@
-from app.multimodal.image_processing.processor import ImageProcessor, UnsupportedImageError
+from app.multimodal.image_processing.processor import ImageDependencyMissingError, ImageProcessor, UnsupportedImageError
 
-__all__ = ["ImageProcessor", "UnsupportedImageError"]
+__all__ = ["ImageDependencyMissingError", "ImageProcessor", "UnsupportedImageError"]

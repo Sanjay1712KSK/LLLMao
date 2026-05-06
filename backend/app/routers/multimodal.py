@@ -1,17 +1,19 @@
 from __future__ import annotations
 
 import json
+import logging
 import uuid
 from pathlib import Path
 
 from fastapi import APIRouter, Depends, File, HTTPException, UploadFile, status
-from fastapi.responses import FileResponse, StreamingResponse
+from fastapi.responses import FileResponse, JSONResponse, StreamingResponse
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.config import get_settings
 from app.database import get_db
 from app.models import ContextSession, ImageAsset, RetrievalLog
+from app.multimodal.image_processing import ImageDependencyMissingError, UnsupportedImageError
 from app.multimodal.prompt_orchestration import PromptOrchestrator
 from app.multimodal.retrieval_fusion import RetrievalFusion
 from app.multimodal.storage import ImageStore
@@ -20,16 +22,51 @@ from app.services import chat_service
 from app.services.ollama_service import OllamaService, OllamaUnavailableError
 
 router = APIRouter(tags=["multimodal"])
+logger = logging.getLogger("lllmao.multimodal")
+
+
+def structured_error(code: str, message: str, details: str, status_code: int) -> JSONResponse:
+    return JSONResponse(
+        status_code=status_code,
+        content={
+            "error": True,
+            "code": code,
+            "message": message,
+            "details": details,
+        },
+    )
 
 
 @router.post("/images/upload", response_model=ImageRead, status_code=status.HTTP_201_CREATED)
-async def upload_image(chat_id: int | None = None, file: UploadFile = File(...), db: Session = Depends(get_db)) -> ImageRead:
+async def upload_image(chat_id: int | None = None, file: UploadFile = File(...), db: Session = Depends(get_db)) -> ImageRead | JSONResponse:
     if chat_id is not None and chat_service.get_chat(db, chat_id) is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Chat not found")
     try:
         image = await ImageStore().save_upload(file, chat_id=chat_id)
-    except ValueError as exc:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
+    except ImageDependencyMissingError:
+        logger.warning("image_dependency_missing", extra={"filename": file.filename, "chat_id": chat_id})
+        return structured_error(
+            "IMAGE_DEPENDENCY_MISSING",
+            "Image processing backend unavailable.",
+            "Install Pillow in backend requirements.",
+            status.HTTP_503_SERVICE_UNAVAILABLE,
+        )
+    except UnsupportedImageError as exc:
+        logger.warning("image_upload_rejected", extra={"filename": file.filename, "chat_id": chat_id, "error": str(exc)})
+        return structured_error(
+            "IMAGE_VALIDATION_FAILED",
+            str(exc),
+            "Accepted formats are PNG, JPG, JPEG, and WEBP.",
+            status.HTTP_400_BAD_REQUEST,
+        )
+    except Exception as exc:
+        logger.exception("image_upload_failed", extra={"filename": file.filename, "chat_id": chat_id})
+        return structured_error(
+            "IMAGE_UPLOAD_FAILED",
+            "Image upload failed.",
+            "Check backend logs for processing details.",
+            status.HTTP_500_INTERNAL_SERVER_ERROR,
+        )
     db.add(image)
     db.commit()
     db.refresh(image)

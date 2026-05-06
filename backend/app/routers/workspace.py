@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import logging
 import uuid
 from pathlib import Path
 
@@ -21,6 +22,7 @@ from app.workspace.retrieval import WorkspaceRetrievalPipeline, build_workspace_
 from app.workspace.watcher import workspace_watcher
 
 router = APIRouter(tags=["workspace"])
+logger = logging.getLogger("lllmao.workspace")
 
 
 def _workspace_read(workspace: Workspace) -> WorkspaceRead:
@@ -121,7 +123,11 @@ async def stream_workspace_chat(payload: WorkspaceChatRequest, db: Session = Dep
     if chat.title == "New chat":
         chat_service.rename_chat(db, chat.id, chat_service.title_from_message(payload.message))
 
-    chunks = await WorkspaceRetrievalPipeline(get_settings().rag_embedding_model).retrieve(db, workspace.id, payload.message)
+    try:
+        chunks = await WorkspaceRetrievalPipeline(get_settings().rag_embedding_model).retrieve(db, workspace.id, payload.message)
+    except Exception as exc:
+        logger.exception("workspace_retrieval_failed", extra={"workspace_id": workspace.id, "chat_id": payload.chat_id})
+        raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail="Workspace retrieval failed") from exc
     chat_service.add_message(db, payload.chat_id, "user", payload.message)
     history = chat_service.list_messages(db, payload.chat_id)
     history_payload = [

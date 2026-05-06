@@ -3,6 +3,7 @@ import { create } from 'zustand';
 import { api } from '../services/api';
 import type { Chat, Message, OllamaHealth, OllamaModel } from '../types/api';
 import { useMultimodalStore } from './multimodalStore';
+import { useNotificationStore } from './notificationStore';
 import { useWorkspaceStore } from './workspaceStore';
 
 type ChatState = {
@@ -18,6 +19,7 @@ type ChatState = {
   searchQuery: string;
   error: string | null;
   controller: AbortController | null;
+  streamFrame: number | null;
   useKnowledgeBase: boolean;
   useWorkspace: boolean;
   bootstrap: () => Promise<void>;
@@ -49,6 +51,7 @@ export const useChatStore = create<ChatState>((set, get) => ({
   searchQuery: '',
   error: null,
   controller: null,
+  streamFrame: null,
   useKnowledgeBase: false,
   useWorkspace: false,
 
@@ -74,6 +77,11 @@ export const useChatStore = create<ChatState>((set, get) => ({
           database_ok: false,
         },
         error: error instanceof Error ? error.message : 'Startup failed',
+      });
+      useNotificationStore.getState().notify({
+        kind: 'error',
+        title: 'Backend unavailable',
+        message: error instanceof Error ? error.message : 'Startup failed',
       });
     }
   },
@@ -132,10 +140,12 @@ export const useChatStore = create<ChatState>((set, get) => ({
     const selectedModel = get().selectedModel;
     if (!selectedModel) {
       set({ error: 'Select an installed local Ollama model first.' });
+      useNotificationStore.getState().notify({ kind: 'error', title: 'No model selected', message: 'Select an installed local Ollama model first.' });
       return;
     }
     if (get().useWorkspace && !useWorkspaceStore.getState().activeWorkspaceId) {
       set({ error: 'Connect and select a workspace first.' });
+      useNotificationStore.getState().notify({ kind: 'error', title: 'Workspace unavailable', message: 'Connect and select a workspace first.' });
       return;
     }
 
@@ -144,12 +154,30 @@ export const useChatStore = create<ChatState>((set, get) => ({
     const now = new Date().toISOString();
     const startedAt = performance.now();
     let streamedChars = 0;
+    let pendingChunk = '';
+    let frame: number | null = null;
     let retrievedSources: Message['sources'] = [];
+    const flushChunk = () => {
+      const chunk = pendingChunk;
+      pendingChunk = '';
+      frame = null;
+      if (!chunk) return;
+      streamedChars += chunk.length;
+      const elapsedSeconds = Math.max((performance.now() - startedAt) / 1000, 0.1);
+      const estimatedTokens = streamedChars / 4;
+      set((state) => ({
+        tokensPerSecond: estimatedTokens / elapsedSeconds,
+        messages: state.messages.map((message) =>
+          message.id === assistantId ? { ...message, content: message.content + chunk } : message,
+        ),
+      }));
+    };
     set((state) => ({
       error: null,
       isStreaming: true,
       tokensPerSecond: null,
       controller,
+      streamFrame: null,
       messages: [
         ...state.messages,
         { id: optimisticId(), chat_id: chatId!, role: 'user', content: trimmed, created_at: now },
@@ -159,15 +187,11 @@ export const useChatStore = create<ChatState>((set, get) => ({
 
     try {
       const onChunk = (chunk: string) => {
-        streamedChars += chunk.length;
-        const elapsedSeconds = Math.max((performance.now() - startedAt) / 1000, 0.1);
-        const estimatedTokens = streamedChars / 4;
-        set((state) => ({
-          tokensPerSecond: estimatedTokens / elapsedSeconds,
-          messages: state.messages.map((message) =>
-            message.id === assistantId ? { ...message, content: message.content + chunk } : message,
-          ),
-        }));
+        pendingChunk += chunk;
+        if (frame == null) {
+          frame = window.requestAnimationFrame(flushChunk);
+          set({ streamFrame: frame });
+        }
       };
       const pendingImages = useMultimodalStore.getState().pendingImages;
       const activeWorkspaceId = useWorkspaceStore.getState().activeWorkspaceId;
@@ -235,17 +259,26 @@ export const useChatStore = create<ChatState>((set, get) => ({
               index === messages.length - 1 && message.role === 'assistant' ? { ...message, sources: retrievedSources } : message,
             )
           : messages;
-      set({ chats, messages: hydratedMessages, isStreaming: false, controller: null });
+      if (frame != null) window.cancelAnimationFrame(frame);
+      flushChunk();
+      set({ chats, messages: hydratedMessages, isStreaming: false, controller: null, streamFrame: null });
     } catch (error) {
+      if (frame != null) window.cancelAnimationFrame(frame);
+      flushChunk();
       if ((error as Error).name !== 'AbortError') {
-        set({ error: error instanceof Error ? error.message : 'Chat request failed' });
+        const message = error instanceof Error ? error.message : 'Chat request failed';
+        const details = error && typeof error === 'object' && 'details' in error ? String(error.details ?? '') : undefined;
+        set({ error: message });
+        useNotificationStore.getState().notify({ kind: 'error', title: 'Request failed', message, details });
       }
-      set({ isStreaming: false, controller: null });
+      set({ isStreaming: false, controller: null, streamFrame: null });
     }
   },
 
   stopGeneration: () => {
+    const frame = get().streamFrame;
+    if (frame != null) window.cancelAnimationFrame(frame);
     get().controller?.abort();
-    set({ isStreaming: false, controller: null });
+    set({ isStreaming: false, controller: null, streamFrame: null });
   },
 }));

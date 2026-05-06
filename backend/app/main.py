@@ -1,5 +1,6 @@
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
+import logging
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
@@ -7,13 +8,16 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.config import get_settings
 from app.database.init_db import init_db
 from app.routers import chat, health, models, multimodal, rag, stats, workspace
+from app.services.health import dependency_checker
 
 settings = get_settings()
+logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s %(message)s")
 
 
 @asynccontextmanager
 async def lifespan(_: FastAPI) -> AsyncIterator[None]:
     init_db()
+    await dependency_checker.startup_check()
     yield
 
 

@@ -4,6 +4,7 @@ export type OllamaHealth = {
   backend_ok: boolean;
   ollama_ok: boolean;
   database_ok: boolean;
+  dependencies?: Record<string, { ok: boolean; message: string }>;
 };
 
 export type OllamaModel = {
@@ -68,6 +69,7 @@ export type RagSource = {
   chunk_index: number;
   source_type: string;
   distance?: number | null;
+  score?: number | null;
 };
 
 export type Workspace = {
