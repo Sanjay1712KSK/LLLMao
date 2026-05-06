@@ -1,6 +1,9 @@
 export type OllamaHealth = {
   ok: boolean;
   message: string;
+  backend_ok: boolean;
+  ollama_ok: boolean;
+  database_ok: boolean;
 };
 
 export type OllamaModel = {
@@ -15,7 +18,9 @@ export type OllamaModel = {
 export type Chat = {
   id: number;
   title: string;
+  pinned: boolean;
   created_at: string;
+  updated_at: string;
 };
 
 export type Message = {
@@ -24,4 +29,24 @@ export type Message = {
   role: 'user' | 'assistant' | 'system';
   content: string;
   created_at: string;
+};
+
+export type GpuStats = {
+  name?: string | null;
+  vendor?: string | null;
+  utilization_percent?: number | null;
+  vram_used_mb?: number | null;
+  vram_total_mb?: number | null;
+};
+
+export type SystemStats = {
+  cpu_percent: number;
+  ram_percent: number;
+  ram_used_mb: number;
+  ram_total_mb: number;
+  gpu?: GpuStats | null;
+  active_model?: string | null;
+  backend_ok: boolean;
+  ollama_ok: boolean;
+  database_ok: boolean;
 };

@@ -1,4 +1,4 @@
-import type { Chat, Message, OllamaHealth, OllamaModel } from '../types/api';
+import type { Chat, Message, OllamaHealth, OllamaModel, SystemStats } from '../types/api';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? 'http://127.0.0.1:8000';
 
@@ -16,12 +16,15 @@ async function jsonRequest<T>(path: string, init?: RequestInit): Promise<T> {
 
 export const api = {
   health: () => jsonRequest<OllamaHealth>('/health'),
+  stats: () => jsonRequest<SystemStats>('/stats'),
   models: () => jsonRequest<OllamaModel[]>('/models'),
   chats: () => jsonRequest<Chat[]>('/chats'),
   createChat: (title = 'New chat') =>
     jsonRequest<Chat>('/chats', { method: 'POST', body: JSON.stringify({ title }) }),
   renameChat: (chatId: number, title: string) =>
     jsonRequest<Chat>(`/chats/${chatId}`, { method: 'PATCH', body: JSON.stringify({ title }) }),
+  updateChat: (chatId: number, payload: { title?: string; pinned?: boolean }) =>
+    jsonRequest<Chat>(`/chats/${chatId}`, { method: 'PATCH', body: JSON.stringify(payload) }),
   deleteChat: async (chatId: number) => {
     const response = await fetch(`${API_BASE_URL}/chats/${chatId}`, { method: 'DELETE' });
     if (!response.ok) throw new Error(await response.text());

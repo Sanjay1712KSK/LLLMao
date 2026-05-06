@@ -1,8 +1,7 @@
+from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 
 from app.database import get_db
-from fastapi import APIRouter
-
 from app.schemas import HealthRead
 from app.services.ollama_service import OllamaService
 from app.services.system_monitor import system_monitor

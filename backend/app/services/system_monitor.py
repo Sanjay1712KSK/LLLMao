@@ -2,7 +2,6 @@ import json
 import shutil
 import subprocess
 from dataclasses import dataclass
-from time import monotonic
 from typing import Any
 
 import httpx
@@ -28,11 +27,12 @@ class SystemMonitor:
         self._last_cpu_prime = False
 
     async def collect(self, db: Session) -> dict[str, Any]:
+        ram = self._ram()
         return {
             "cpu_percent": self._cpu_percent(),
-            "ram_percent": self._ram().percent,
-            "ram_used_mb": round(self._ram().used / 1024 / 1024, 1),
-            "ram_total_mb": round(self._ram().total / 1024 / 1024, 1),
+            "ram_percent": ram.percent,
+            "ram_used_mb": round(ram.used / 1024 / 1024, 1),
+            "ram_total_mb": round(ram.total / 1024 / 1024, 1),
             "gpu": self._gpu(),
             "active_model": await self.active_model(),
             "backend_ok": True,
@@ -104,11 +104,6 @@ class SystemMonitor:
             return self._generic_gpu_hint()
 
     def _generic_gpu_hint(self) -> GpuStats | None:
-        try:
-            for device in psutil.Process().parents():
-                _ = device
-        except Exception:
-            pass
         return None
 
     def _first_number(self, data: dict[str, Any], keys: tuple[str, ...]) -> float | None:

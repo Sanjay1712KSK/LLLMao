@@ -12,13 +12,17 @@ type ChatState = {
   health: OllamaHealth;
   isLoading: boolean;
   isStreaming: boolean;
+  tokensPerSecond: number | null;
+  searchQuery: string;
   error: string | null;
   controller: AbortController | null;
   bootstrap: () => Promise<void>;
   createChat: () => Promise<void>;
   selectChat: (chatId: number) => Promise<void>;
   renameChat: (chatId: number, title: string) => Promise<void>;
+  togglePinned: (chatId: number) => Promise<void>;
   deleteChat: (chatId: number) => Promise<void>;
+  setSearchQuery: (query: string) => void;
   setSelectedModel: (model: string) => void;
   sendMessage: (content: string) => Promise<void>;
   stopGeneration: () => void;
@@ -32,9 +36,11 @@ export const useChatStore = create<ChatState>((set, get) => ({
   models: [],
   currentChatId: null,
   selectedModel: '',
-  health: { ok: false, message: 'Checking Ollama...' },
+  health: { ok: false, message: 'Checking Ollama...', backend_ok: false, ollama_ok: false, database_ok: false },
   isLoading: false,
   isStreaming: false,
+  tokensPerSecond: null,
+  searchQuery: '',
   error: null,
   controller: null,
 
@@ -52,7 +58,13 @@ export const useChatStore = create<ChatState>((set, get) => ({
     } catch (error) {
       set({
         isLoading: false,
-        health: { ok: false, message: 'Unable to connect to the local backend or Ollama.' },
+        health: {
+          ok: false,
+          message: 'Unable to connect to the local backend or Ollama.',
+          backend_ok: false,
+          ollama_ok: false,
+          database_ok: false,
+        },
         error: error instanceof Error ? error.message : 'Startup failed',
       });
     }
@@ -74,6 +86,16 @@ export const useChatStore = create<ChatState>((set, get) => ({
     set((state) => ({ chats: state.chats.map((item) => (item.id === chatId ? chat : item)) }));
   },
 
+  togglePinned: async (chatId) => {
+    const current = get().chats.find((chat) => chat.id === chatId);
+    if (!current) return;
+    const chat = await api.updateChat(chatId, { pinned: !current.pinned });
+    const chats = get()
+      .chats.map((item) => (item.id === chatId ? chat : item))
+      .sort((a, b) => Number(b.pinned) - Number(a.pinned) || Date.parse(b.updated_at) - Date.parse(a.updated_at));
+    set({ chats });
+  },
+
   deleteChat: async (chatId) => {
     await api.deleteChat(chatId);
     const chats = get().chats.filter((chat) => chat.id !== chatId);
@@ -81,6 +103,8 @@ export const useChatStore = create<ChatState>((set, get) => ({
     const messages = nextChatId ? await api.messages(nextChatId) : [];
     set({ chats, currentChatId: nextChatId, messages });
   },
+
+  setSearchQuery: (searchQuery) => set({ searchQuery }),
 
   setSelectedModel: (selectedModel) => set({ selectedModel }),
 
@@ -104,9 +128,12 @@ export const useChatStore = create<ChatState>((set, get) => ({
     const controller = new AbortController();
     const assistantId = optimisticId();
     const now = new Date().toISOString();
+    const startedAt = performance.now();
+    let streamedChars = 0;
     set((state) => ({
       error: null,
       isStreaming: true,
+      tokensPerSecond: null,
       controller,
       messages: [
         ...state.messages,
@@ -118,12 +145,17 @@ export const useChatStore = create<ChatState>((set, get) => ({
     try {
       await api.streamChat(
         { chat_id: chatId, model: selectedModel, message: trimmed },
-        (chunk) =>
+        (chunk) => {
+          streamedChars += chunk.length;
+          const elapsedSeconds = Math.max((performance.now() - startedAt) / 1000, 0.1);
+          const estimatedTokens = streamedChars / 4;
           set((state) => ({
+            tokensPerSecond: estimatedTokens / elapsedSeconds,
             messages: state.messages.map((message) =>
               message.id === assistantId ? { ...message, content: message.content + chunk } : message,
             ),
-          })),
+          }));
+        },
         controller.signal,
       );
       const [chats, messages] = await Promise.all([api.chats(), api.messages(chatId)]);
