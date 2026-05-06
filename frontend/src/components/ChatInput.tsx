@@ -1,11 +1,11 @@
-import { Send, Square } from 'lucide-react';
+import { BookOpen, Send, Square } from 'lucide-react';
 import { useState } from 'react';
 
 import { useChatStore } from '../store/chatStore';
 
 export function ChatInput() {
   const [value, setValue] = useState('');
-  const { sendMessage, stopGeneration, isStreaming, selectedModel, health } = useChatStore();
+  const { sendMessage, stopGeneration, isStreaming, selectedModel, health, useKnowledgeBase, setUseKnowledgeBase } = useChatStore();
 
   const submit = async () => {
     if (!value.trim() || isStreaming) return;
@@ -16,7 +16,22 @@ export function ChatInput() {
 
   return (
     <div className="sticky bottom-0 border-t border-line bg-surface/95 px-4 py-4 backdrop-blur">
-      <div className="mx-auto flex max-w-4xl items-end gap-3 rounded-xl border border-line bg-panel p-2 shadow-soft">
+      <div className="mx-auto max-w-4xl rounded-xl border border-line bg-panel p-2 shadow-soft">
+        <div className="mb-2 flex items-center justify-between px-2">
+          <button
+            className={`inline-flex items-center gap-2 rounded-lg border px-2.5 py-1.5 text-xs ${
+              useKnowledgeBase ? 'border-accent bg-accent/10 text-accent' : 'border-line text-muted hover:bg-white/5 hover:text-ink'
+            }`}
+            type="button"
+            onClick={() => setUseKnowledgeBase(!useKnowledgeBase)}
+            title="Use Knowledge Base"
+          >
+            <BookOpen size={14} />
+            Use Knowledge Base
+          </button>
+          {useKnowledgeBase && <span className="text-xs text-muted">RAG mode</span>}
+        </div>
+        <div className="flex items-end gap-3">
         <textarea
           className="max-h-48 min-h-[52px] flex-1 resize-none bg-transparent px-3 py-3 text-sm leading-6 text-ink outline-none placeholder:text-muted"
           placeholder={health.ok ? 'Ask a local model...' : 'Start Ollama, then refresh the app'}
@@ -50,6 +65,7 @@ export function ChatInput() {
             <Send size={18} />
           </button>
         )}
+        </div>
       </div>
     </div>
   );

@@ -29,6 +29,42 @@ export type Message = {
   role: 'user' | 'assistant' | 'system';
   content: string;
   created_at: string;
+  sources?: RagSource[];
+};
+
+export type DocumentStatus = 'queued' | 'indexing' | 'indexed' | 'failed' | 'cancelled' | 'cancelling' | string;
+
+export type KnowledgeDocument = {
+  id: string;
+  filename: string;
+  file_type: string;
+  status: DocumentStatus;
+  error_message?: string | null;
+  indexed_at?: string | null;
+  chunk_count: number;
+  embedding_model: string;
+  created_at: string;
+  updated_at: string;
+};
+
+export type KnowledgeChunk = {
+  id: string;
+  document_id: string;
+  filename: string;
+  source_type: string;
+  chunk_index: number;
+  section_title?: string | null;
+  token_count: number;
+  content: string;
+  created_at: string;
+};
+
+export type RagSource = {
+  filename: string;
+  section_title?: string | null;
+  chunk_index: number;
+  source_type: string;
+  distance?: number | null;
 };
 
 export type GpuStats = {

@@ -1,4 +1,4 @@
-import type { Chat, Message, OllamaHealth, OllamaModel, SystemStats } from '../types/api';
+import type { Chat, KnowledgeChunk, KnowledgeDocument, Message, OllamaHealth, OllamaModel, RagSource, SystemStats } from '../types/api';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? 'http://127.0.0.1:8000';
 
@@ -30,6 +30,33 @@ export const api = {
     if (!response.ok) throw new Error(await response.text());
   },
   messages: (chatId: number) => jsonRequest<Message[]>(`/messages/${chatId}`),
+  documents: () => jsonRequest<KnowledgeDocument[]>('/documents'),
+  chunks: (documentId: string) => jsonRequest<KnowledgeChunk[]>(`/documents/${documentId}/chunks`),
+  deleteDocument: async (documentId: string) => {
+    const response = await fetch(`${API_BASE_URL}/documents/${documentId}`, { method: 'DELETE' });
+    if (!response.ok) throw new Error(await response.text());
+  },
+  reindexDocument: (documentId: string) => jsonRequest<KnowledgeDocument>(`/documents/${documentId}/reindex`, { method: 'POST' }),
+  cancelDocument: (documentId: string) => jsonRequest<KnowledgeDocument>(`/documents/${documentId}/cancel`, { method: 'POST' }),
+  uploadDocument: (file: File, onProgress?: (progress: number) => void) =>
+    new Promise<KnowledgeDocument>((resolve, reject) => {
+      const formData = new FormData();
+      formData.append('file', file);
+      const request = new XMLHttpRequest();
+      request.open('POST', `${API_BASE_URL}/upload`);
+      request.upload.onprogress = (event) => {
+        if (event.lengthComputable) onProgress?.(Math.round((event.loaded / event.total) * 100));
+      };
+      request.onload = () => {
+        if (request.status >= 200 && request.status < 300) {
+          resolve(JSON.parse(request.responseText) as KnowledgeDocument);
+        } else {
+          reject(new Error(request.responseText || request.statusText));
+        }
+      };
+      request.onerror = () => reject(new Error('Upload failed'));
+      request.send(formData);
+    }),
   streamChat: async (
     payload: { chat_id: number; model: string; message: string },
     onChunk: (chunk: string) => void,
@@ -51,5 +78,44 @@ export const api = {
       if (done) break;
       onChunk(decoder.decode(value, { stream: true }));
     }
+  },
+  streamRagChat: async (
+    payload: { chat_id: number; model: string; message: string },
+    onChunk: (chunk: string) => void,
+    onSources: (sources: RagSource[]) => void,
+    signal?: AbortSignal,
+  ) => {
+    const response = await fetch(`${API_BASE_URL}/rag/chat`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+      signal,
+    });
+    if (!response.ok || !response.body) {
+      throw new Error((await response.text()) || response.statusText);
+    }
+    const reader = response.body.getReader();
+    const decoder = new TextDecoder();
+    let buffer = '';
+    const dispatchEvent = (raw: string) => {
+      const lines = raw.split('\n');
+      const event = lines.find((line) => line.startsWith('event:'))?.slice(6).trim();
+      const data = lines
+        .filter((line) => line.startsWith('data:'))
+        .map((line) => line.slice(5).trim())
+        .join('\n');
+      if (!event || !data) return;
+      if (event === 'sources') onSources(JSON.parse(data) as RagSource[]);
+      if (event === 'token') onChunk(JSON.parse(data) as string);
+    };
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      buffer += decoder.decode(value, { stream: true });
+      const events = buffer.split('\n\n');
+      buffer = events.pop() ?? '';
+      events.forEach(dispatchEvent);
+    }
+    if (buffer.trim()) dispatchEvent(buffer);
   },
 };

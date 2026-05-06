@@ -3,6 +3,7 @@ import { useState } from 'react';
 import clsx from 'clsx';
 
 import { useChatStore } from '../store/chatStore';
+import { KnowledgeBasePanel } from './KnowledgeBasePanel';
 
 export function Sidebar() {
   const { chats, currentChatId, createChat, selectChat, renameChat, togglePinned, deleteChat, searchQuery, setSearchQuery } =
@@ -97,6 +98,7 @@ export function Sidebar() {
           </div>
         ))}
       </nav>
+      <KnowledgeBasePanel />
     </aside>
   );
 }

@@ -48,7 +48,23 @@ export function ChatView() {
             </div>
             <div className="min-w-0 flex-1 text-sm leading-7 text-ink">
               {message.content ? (
-                <MarkdownMessage content={message.content} />
+                <>
+                  <MarkdownMessage content={message.content} />
+                  {message.sources && message.sources.length > 0 && (
+                    <div className="mt-3 flex flex-wrap gap-2">
+                      {message.sources.map((source) => (
+                        <span
+                          key={`${source.filename}-${source.chunk_index}-${source.section_title ?? ''}`}
+                          className="rounded-lg border border-line bg-panel px-2 py-1 text-xs text-muted"
+                          title={source.section_title ?? source.filename}
+                        >
+                          Retrieved from {source.filename}
+                          {source.section_title ? ` / ${source.section_title}` : ''} · chunk {source.chunk_index}
+                        </span>
+                      ))}
+                    </div>
+                  )}
+                </>
               ) : (
                 <span className="inline-flex items-center gap-1 text-muted">
                   <span className="h-1.5 w-1.5 rounded-full bg-muted" />

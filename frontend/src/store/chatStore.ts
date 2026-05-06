@@ -16,6 +16,7 @@ type ChatState = {
   searchQuery: string;
   error: string | null;
   controller: AbortController | null;
+  useKnowledgeBase: boolean;
   bootstrap: () => Promise<void>;
   createChat: () => Promise<void>;
   selectChat: (chatId: number) => Promise<void>;
@@ -24,6 +25,7 @@ type ChatState = {
   deleteChat: (chatId: number) => Promise<void>;
   setSearchQuery: (query: string) => void;
   setSelectedModel: (model: string) => void;
+  setUseKnowledgeBase: (enabled: boolean) => void;
   sendMessage: (content: string) => Promise<void>;
   stopGeneration: () => void;
 };
@@ -43,6 +45,7 @@ export const useChatStore = create<ChatState>((set, get) => ({
   searchQuery: '',
   error: null,
   controller: null,
+  useKnowledgeBase: false,
 
   bootstrap: async () => {
     set({ isLoading: true, error: null });
@@ -107,6 +110,7 @@ export const useChatStore = create<ChatState>((set, get) => ({
   setSearchQuery: (searchQuery) => set({ searchQuery }),
 
   setSelectedModel: (selectedModel) => set({ selectedModel }),
+  setUseKnowledgeBase: (useKnowledgeBase) => set({ useKnowledgeBase }),
 
   sendMessage: async (content) => {
     const trimmed = content.trim();
@@ -143,21 +147,35 @@ export const useChatStore = create<ChatState>((set, get) => ({
     }));
 
     try {
-      await api.streamChat(
-        { chat_id: chatId, model: selectedModel, message: trimmed },
-        (chunk) => {
-          streamedChars += chunk.length;
-          const elapsedSeconds = Math.max((performance.now() - startedAt) / 1000, 0.1);
-          const estimatedTokens = streamedChars / 4;
-          set((state) => ({
-            tokensPerSecond: estimatedTokens / elapsedSeconds,
-            messages: state.messages.map((message) =>
-              message.id === assistantId ? { ...message, content: message.content + chunk } : message,
-            ),
-          }));
-        },
-        controller.signal,
-      );
+      const onChunk = (chunk: string) => {
+        streamedChars += chunk.length;
+        const elapsedSeconds = Math.max((performance.now() - startedAt) / 1000, 0.1);
+        const estimatedTokens = streamedChars / 4;
+        set((state) => ({
+          tokensPerSecond: estimatedTokens / elapsedSeconds,
+          messages: state.messages.map((message) =>
+            message.id === assistantId ? { ...message, content: message.content + chunk } : message,
+          ),
+        }));
+      };
+      if (get().useKnowledgeBase) {
+        await api.streamRagChat(
+          { chat_id: chatId, model: selectedModel, message: trimmed },
+          onChunk,
+          (sources) => {
+            set((state) => ({
+              messages: state.messages.map((message) => (message.id === assistantId ? { ...message, sources } : message)),
+            }));
+          },
+          controller.signal,
+        );
+      } else {
+        await api.streamChat(
+          { chat_id: chatId, model: selectedModel, message: trimmed },
+          onChunk,
+          controller.signal,
+        );
+      }
       const [chats, messages] = await Promise.all([api.chats(), api.messages(chatId)]);
       set({ chats, messages, isStreaming: false, controller: null });
     } catch (error) {
