@@ -1,6 +1,8 @@
-# LLLMao
+# LLLMao - In Development
 
 **Local Lightweight Language Model Assistant Orchestrator**
+
+Project-Tony-Stank was the internal name for LLLMao
 
 LLLMao is a lightweight local-first AI workspace for conversational AI, RAG workflows, semantic workspace indexing, and multimodal development assistance powered entirely by locally installed [Ollama](https://ollama.com?utm_source=chatgpt.com) models.
 
