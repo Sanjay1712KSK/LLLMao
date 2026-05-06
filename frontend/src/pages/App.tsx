@@ -39,7 +39,7 @@ export default function App() {
             <button className="m-2 rounded-lg p-2 text-muted hover:bg-white/5 hover:text-ink" onClick={() => setSidebarOpen(true)} type="button" title="Open sidebar">
               <PanelLeft size={20} />
             </button>
-            <div className="text-sm font-semibold">MyOwnRTXChat</div>
+            <div className="text-sm font-semibold">LLLMao</div>
           </div>
           <Header />
           <ChatView />

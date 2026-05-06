@@ -2,7 +2,7 @@
 
 A lightweight Linux-native local AI workspace for already-installed Ollama models.
 
-Phase 1 provides a ChatGPT-style desktop-ready foundation with React, Vite, Tailwind CSS, Zustand, FastAPI, SQLite, and a Tauri-ready shell.
+Phase 1 provides a ChatGPT-style desktop-ready foundation with React, Vite, Tailwind CSS, Zustand, FastAPI, SQLite, and a Tauri-ready shell. Phase 2 adds live local system monitoring and advanced chat workflow polish.
 
 ## Product Boundary
 

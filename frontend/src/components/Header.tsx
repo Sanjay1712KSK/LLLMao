@@ -12,7 +12,7 @@ export function Header() {
       <div className="min-w-0">
         <div className="flex items-center gap-2 text-sm font-medium text-ink">
           <Cpu size={17} className="text-accent" />
-          <span>Local Ollama Workspace</span>
+          <span>LLLMao Workspace</span>
         </div>
         <p className="truncate text-xs text-muted">
           {model ? [model.parameter_size, model.quantization_level, formatBytes(model.size)].filter(Boolean).join(' · ') : 'No local model selected'}

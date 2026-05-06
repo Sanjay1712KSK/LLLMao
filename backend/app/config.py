@@ -5,7 +5,7 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
-    app_name: str = "MyOwnRTXChat"
+    app_name: str = "LLLMao"
     api_prefix: str = ""
     ollama_base_url: str = "http://localhost:11434"
     database_url: str = f"sqlite:///{Path(__file__).resolve().parents[2] / 'database' / 'workspace.sqlite3'}"

@@ -1,8 +1,8 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
-  "productName": "MyOwnRTXChat",
+  "productName": "LLLMao",
   "version": "0.1.0",
-  "identifier": "com.myownrtxchat.desktop",
+  "identifier": "com.lllmao.desktop",
   "build": {
     "beforeDevCommand": "cd ../frontend && npm run dev",
     "devUrl": "http://127.0.0.1:1420",
@@ -12,7 +12,7 @@
   "app": {
     "windows": [
       {
-        "title": "MyOwnRTXChat",
+        "title": "LLLMao",
         "width": 1280,
         "height": 820,
         "minWidth": 920,
@@ -29,7 +29,7 @@
     "targets": ["deb"],
     "category": "DeveloperTool",
     "shortDescription": "Local Ollama AI workspace",
-    "longDescription": "A lightweight Linux-native desktop workspace for already-installed local Ollama models.",
+    "longDescription": "LLLMao is a lightweight Linux-native desktop workspace for already-installed local Ollama models.",
     "linux": {
       "deb": {
         "depends": ["libwebkit2gtk-4.1-0"]

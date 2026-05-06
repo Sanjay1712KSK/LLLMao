@@ -1,8 +1,8 @@
 [package]
-name = "myownrtxchat"
+name = "lllmao"
 version = "0.1.0"
 description = "Linux-native local Ollama workspace"
-authors = ["MyOwnRTXChat contributors"]
+authors = ["LLLMao contributors"]
 edition = "2021"
 license-file = "../LICENSE"
 
