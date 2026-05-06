@@ -114,8 +114,8 @@ export const useChatStore = create<ChatState>((set, get) => ({
   setSearchQuery: (searchQuery) => set({ searchQuery }),
 
   setSelectedModel: (selectedModel) => set({ selectedModel }),
-  setUseKnowledgeBase: (useKnowledgeBase) => set({ useKnowledgeBase }),
-  setUseWorkspace: (useWorkspace) => set({ useWorkspace }),
+  setUseKnowledgeBase: (useKnowledgeBase) => set({ useKnowledgeBase, useWorkspace: useKnowledgeBase ? false : get().useWorkspace }),
+  setUseWorkspace: (useWorkspace) => set({ useWorkspace, useKnowledgeBase: useWorkspace ? false : get().useKnowledgeBase }),
 
   sendMessage: async (content) => {
     const trimmed = content.trim();

@@ -242,11 +242,13 @@ class CodeParser:
         return text.count("\n") + 1
 
     def _ros2_metadata(self, text: str) -> dict[str, list[str]]:
+        node_matches = re.findall(r"(?:class\s+([A-Za-z_]\w*).*Node|super\(\).__init__\(['\"]([^'\"]+)['\"]\))", text)
+        nodes = sorted(set(value for match in node_matches for value in match if value))
         return {
             "publishers": sorted(set(re.findall(r"create_publisher\([^,]+,\s*['\"]([^'\"]+)['\"]", text))),
             "subscribers": sorted(set(re.findall(r"create_subscription\([^,]+,\s*['\"]([^'\"]+)['\"]", text))),
             "services": sorted(set(re.findall(r"create_service\([^,]+,\s*['\"]([^'\"]+)['\"]", text))),
             "clients": sorted(set(re.findall(r"create_client\([^,]+,\s*['\"]([^'\"]+)['\"]", text))),
             "actions": sorted(set(re.findall(r"Action(?:Server|Client)\([^,]+,\s*['\"]([^'\"]+)['\"]", text))),
-            "nodes": sorted(set(re.findall(r"(?:class\s+([A-Za-z_]\w*).*Node|super\(\).__init__\(['\"]([^'\"]+)['\"]\))", text))),
+            "nodes": nodes,
         }

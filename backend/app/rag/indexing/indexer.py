@@ -10,7 +10,7 @@ from app.models import Document, DocumentChunk
 from app.rag.chunking import SemanticChunker
 from app.rag.embeddings import OllamaEmbeddingService
 from app.rag.parsers import DocumentParser
-from app.rag.vectorstore import ChromaVectorStore
+from app.rag.vectorstore import ChromaVectorStore, VectorStoreUnavailableError
 
 indexing_progress: dict[str, dict[str, int | str]] = {}
 indexing_cancellations: set[str] = set()
@@ -35,22 +35,28 @@ class DocumentIndexer:
             path = Path(document.storage_path)
             blocks = self.parser.parse(path)
             chunks = self.chunker.chunk(blocks, document.id, document.filename, document.file_type)
-            indexing_progress[document_id] = {"status": "embedding", "done": 0, "total": len(chunks)}
 
-            embeddings_service = OllamaEmbeddingService(model=self.embedding_model)
-            embeddings = []
-            for index, chunk in enumerate(chunks, start=1):
-                if document_id in indexing_cancellations:
-                    document.status = "cancelled"
-                    db.commit()
-                    indexing_cancellations.discard(document_id)
-                    return
-                embeddings.append(await embeddings_service.embed(chunk.content))
-                indexing_progress[document_id] = {"status": "embedding", "done": index, "total": len(chunks)}
+            try:
+                vectorstore = ChromaVectorStore()
+                vectorstore.delete_document(document.id)
+                vector_error = None
+            except VectorStoreUnavailableError as exc:
+                vectorstore = None
+                vector_error = str(exc)
 
-            vectorstore = ChromaVectorStore()
-            vectorstore.delete_document(document.id)
-            vectorstore.upsert_chunks(chunks, embeddings)
+            if vectorstore is not None:
+                indexing_progress[document_id] = {"status": "embedding", "done": 0, "total": len(chunks)}
+                embeddings_service = OllamaEmbeddingService(model=self.embedding_model)
+                embeddings = []
+                for index, chunk in enumerate(chunks, start=1):
+                    if document_id in indexing_cancellations:
+                        document.status = "cancelled"
+                        db.commit()
+                        indexing_cancellations.discard(document_id)
+                        return
+                    embeddings.append(await embeddings_service.embed(chunk.content))
+                    indexing_progress[document_id] = {"status": "embedding", "done": index, "total": len(chunks)}
+                vectorstore.upsert_chunks(chunks, embeddings)
 
             db.execute(delete(DocumentChunk).where(DocumentChunk.document_id == document.id))
             for chunk in chunks:
@@ -70,6 +76,7 @@ class DocumentIndexer:
             document.indexed_at = datetime.now(UTC)
             document.chunk_count = len(chunks)
             document.embedding_model = self.embedding_model
+            document.error_message = vector_error
             db.commit()
             indexing_progress[document_id] = {"status": "indexed", "done": len(chunks), "total": len(chunks)}
         except Exception as exc:
