@@ -15,9 +15,10 @@ export function MarkdownMessage({ content }: MarkdownMessageProps) {
       remarkPlugins={[remarkGfm]}
       rehypePlugins={[rehypeHighlight]}
       components={{
-        code({ inline, className, children, ...props }) {
+        code({ className, children, ...props }) {
           const text = String(children).replace(/\n$/, '');
-          if (inline) {
+          const isBlock = Boolean(className);
+          if (!isBlock) {
             return (
               <code className="rounded bg-white/8 px-1.5 py-0.5 text-[0.92em] text-ink" {...props}>
                 {children}
