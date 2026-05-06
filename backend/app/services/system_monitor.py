@@ -2,7 +2,7 @@ import json
 import shutil
 import subprocess
 import sys
-from dataclasses import dataclass
+from dataclasses import asdict, dataclass
 from typing import Any
 
 import httpx
@@ -37,7 +37,7 @@ class SystemMonitor:
             "ram_percent": ram.percent,
             "ram_used_mb": round(ram.used / 1024 / 1024, 1),
             "ram_total_mb": round(ram.total / 1024 / 1024, 1),
-            "gpu": gpu,
+            "gpu": asdict(gpu) if gpu else None,
             "active_model": active_model,
             "backend_ok": True,
             "ollama_ok": ollama_ok,
