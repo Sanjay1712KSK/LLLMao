@@ -1,7 +1,7 @@
-import asyncio
 import json
 import shutil
 import subprocess
+import sys
 from dataclasses import dataclass
 from typing import Any
 
@@ -29,11 +29,9 @@ class SystemMonitor:
 
     async def collect(self, db: Session) -> dict[str, Any]:
         ram = self._ram()
-        gpu, active_model, ollama_ok = await asyncio.gather(
-            self._gpu_async(),
-            self.active_model(),
-            self.ollama_ok(),
-        )
+        gpu = self._gpu()
+        active_model = await self.active_model()
+        ollama_ok = await self.ollama_ok()
         return {
             "cpu_percent": self._cpu_percent(),
             "ram_percent": ram.percent,
@@ -58,35 +56,37 @@ class SystemMonitor:
     def _gpu(self) -> GpuStats | None:
         return self._nvidia_gpu() or self._amd_gpu()
 
-    async def _gpu_async(self) -> GpuStats | None:
-        try:
-            return await asyncio.wait_for(asyncio.to_thread(self._gpu), timeout=0.8)
-        except Exception:
-            return None
-
     def _nvidia_gpu(self) -> GpuStats | None:
         if not shutil.which("nvidia-smi"):
             return None
         try:
-            import pynvml
-
-            pynvml.nvmlInit()
-            if pynvml.nvmlDeviceGetCount() < 1:
-                pynvml.nvmlShutdown()
+            probe = (
+                "import json, pynvml; "
+                "pynvml.nvmlInit(); "
+                "count=pynvml.nvmlDeviceGetCount(); "
+                "h=pynvml.nvmlDeviceGetHandleByIndex(0) if count else None; "
+                "m=pynvml.nvmlDeviceGetMemoryInfo(h) if h else None; "
+                "u=pynvml.nvmlDeviceGetUtilizationRates(h) if h else None; "
+                "n=pynvml.nvmlDeviceGetName(h) if h else None; "
+                "pynvml.nvmlShutdown(); "
+                "print(json.dumps({'name': n.decode() if isinstance(n, bytes) else n, 'util': u.gpu if u else None, 'used': m.used if m else None, 'total': m.total if m else None}))"
+            )
+            result = subprocess.run(
+                [sys.executable, "-c", probe],
+                check=False,
+                capture_output=True,
+                text=True,
+                timeout=0.7,
+            )
+            data = json.loads(result.stdout or "{}")
+            if not data.get("name"):
                 return None
-            handle = pynvml.nvmlDeviceGetHandleByIndex(0)
-            memory = pynvml.nvmlDeviceGetMemoryInfo(handle)
-            utilization = pynvml.nvmlDeviceGetUtilizationRates(handle)
-            name = pynvml.nvmlDeviceGetName(handle)
-            pynvml.nvmlShutdown()
-            if isinstance(name, bytes):
-                name = name.decode("utf-8", errors="replace")
             return GpuStats(
-                name=str(name),
+                name=str(data["name"]),
                 vendor="NVIDIA",
-                utilization_percent=float(utilization.gpu),
-                vram_used_mb=round(memory.used / 1024 / 1024, 1),
-                vram_total_mb=round(memory.total / 1024 / 1024, 1),
+                utilization_percent=float(data["util"]) if data.get("util") is not None else None,
+                vram_used_mb=round(float(data["used"]) / 1024 / 1024, 1) if data.get("used") else None,
+                vram_total_mb=round(float(data["total"]) / 1024 / 1024, 1) if data.get("total") else None,
             )
         except Exception:
             return None
