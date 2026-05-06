@@ -2,6 +2,7 @@ import clsx from 'clsx';
 
 import { useAutoScroll } from '../hooks/useAutoScroll';
 import { useChatStore } from '../store/chatStore';
+import type { RetrievalSource } from '../types/api';
 import { MarkdownMessage } from './MarkdownMessage';
 
 export function ChatView() {
@@ -54,12 +55,11 @@ export function ChatView() {
                     <div className="mt-3 flex flex-wrap gap-2">
                       {message.sources.map((source) => (
                         <span
-                          key={`${source.filename}-${source.chunk_index}-${source.section_title ?? ''}`}
+                          key={sourceKey(source)}
                           className="rounded-lg border border-line bg-panel px-2 py-1 text-xs text-muted"
-                          title={source.section_title ?? source.filename}
+                          title={sourceTitle(source)}
                         >
-                          Retrieved from {source.filename}
-                          {source.section_title ? ` / ${source.section_title}` : ''} · chunk {source.chunk_index}
+                          {sourceLabel(source)}
                         </span>
                       ))}
                     </div>
@@ -81,4 +81,21 @@ export function ChatView() {
       </div>
     </main>
   );
+}
+
+function sourceKey(source: RetrievalSource) {
+  if ('file_path' in source) return `${source.file_path}-${source.start_line}-${source.end_line}`;
+  return `${source.filename}-${source.chunk_index}-${source.section_title ?? ''}`;
+}
+
+function sourceTitle(source: RetrievalSource) {
+  if ('file_path' in source) return `${source.file_path}:${source.start_line}-${source.end_line}`;
+  return source.section_title ?? source.filename;
+}
+
+function sourceLabel(source: RetrievalSource) {
+  if ('file_path' in source) {
+    return `Retrieved from ${source.file_path}${source.symbol_name ? ` / ${source.symbol_name}` : ''} · lines ${source.start_line}-${source.end_line}`;
+  }
+  return `Retrieved from ${source.filename}${source.section_title ? ` / ${source.section_title}` : ''} · chunk ${source.chunk_index}`;
 }

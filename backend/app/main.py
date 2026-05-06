@@ -6,7 +6,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.config import get_settings
 from app.database.init_db import init_db
-from app.routers import chat, health, models, rag, stats
+from app.routers import chat, health, models, rag, stats, workspace
 
 settings = get_settings()
 
@@ -38,3 +38,4 @@ app.include_router(models.router, prefix=settings.api_prefix)
 app.include_router(stats.router, prefix=settings.api_prefix)
 app.include_router(chat.router, prefix=settings.api_prefix)
 app.include_router(rag.router, prefix=settings.api_prefix)
+app.include_router(workspace.router, prefix=settings.api_prefix)

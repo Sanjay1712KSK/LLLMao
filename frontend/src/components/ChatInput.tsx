@@ -1,11 +1,21 @@
-import { BookOpen, Send, Square } from 'lucide-react';
+import { BookOpen, FolderGit2, Send, Square } from 'lucide-react';
 import { useState } from 'react';
 
 import { useChatStore } from '../store/chatStore';
 
 export function ChatInput() {
   const [value, setValue] = useState('');
-  const { sendMessage, stopGeneration, isStreaming, selectedModel, health, useKnowledgeBase, setUseKnowledgeBase } = useChatStore();
+  const {
+    sendMessage,
+    stopGeneration,
+    isStreaming,
+    selectedModel,
+    health,
+    useKnowledgeBase,
+    useWorkspace,
+    setUseKnowledgeBase,
+    setUseWorkspace,
+  } = useChatStore();
 
   const submit = async () => {
     if (!value.trim() || isStreaming) return;
@@ -29,7 +39,17 @@ export function ChatInput() {
             <BookOpen size={14} />
             Use Knowledge Base
           </button>
-          {useKnowledgeBase && <span className="text-xs text-muted">RAG mode</span>}
+          <button
+            className={`inline-flex items-center gap-2 rounded-lg border px-2.5 py-1.5 text-xs ${
+              useWorkspace ? 'border-accent bg-accent/10 text-accent' : 'border-line text-muted hover:bg-white/5 hover:text-ink'
+            }`}
+            type="button"
+            onClick={() => setUseWorkspace(!useWorkspace)}
+            title="Use Workspace"
+          >
+            <FolderGit2 size={14} />
+            Use Workspace
+          </button>
         </div>
         <div className="flex items-end gap-3">
         <textarea

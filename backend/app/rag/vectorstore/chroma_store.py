@@ -27,12 +27,23 @@ class ChromaVectorStore:
     def upsert_chunks(self, chunks: list[RagChunk], embeddings: list[list[float]]) -> None:
         if not chunks:
             return
-        self.collection.upsert(
+        self.upsert_records(
             ids=[chunk.id for chunk in chunks],
             documents=[chunk.content for chunk in chunks],
             embeddings=embeddings,
             metadatas=[self._metadata(chunk) for chunk in chunks],
         )
+
+    def upsert_records(
+        self,
+        ids: list[str],
+        documents: list[str],
+        embeddings: list[list[float]],
+        metadatas: list[dict[str, str | int | float | bool | None]],
+    ) -> None:
+        if not ids:
+            return
+        self.collection.upsert(ids=ids, documents=documents, embeddings=embeddings, metadatas=metadatas)
 
     def query(self, embedding: list[float], limit: int = 5) -> list[dict[str, Any]]:
         result = self.collection.query(
@@ -58,6 +69,12 @@ class ChromaVectorStore:
 
     def delete_document(self, document_id: str) -> None:
         self.collection.delete(where={"document_id": document_id})
+
+    def delete_workspace(self, workspace_id: str) -> None:
+        self.collection.delete(where={"workspace_id": workspace_id})
+
+    def delete_file(self, workspace_id: str, file_path: str) -> None:
+        self.collection.delete(where={"$and": [{"workspace_id": workspace_id}, {"file_path": file_path}]})
 
     def _metadata(self, chunk: RagChunk) -> dict[str, str | int | float | bool | None]:
         return {

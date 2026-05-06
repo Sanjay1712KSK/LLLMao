@@ -1,11 +1,12 @@
 from app.database.session import Base, engine
-from app.models import chat, rag
+from app.models import chat, rag, workspace
 from sqlalchemy import inspect, text
 
 
 def init_db() -> None:
     _ = chat
     _ = rag
+    _ = workspace
     Base.metadata.create_all(bind=engine)
     migrate_sqlite_schema()
 

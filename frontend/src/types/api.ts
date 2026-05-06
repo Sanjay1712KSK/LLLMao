@@ -29,7 +29,7 @@ export type Message = {
   role: 'user' | 'assistant' | 'system';
   content: string;
   created_at: string;
-  sources?: RagSource[];
+  sources?: RetrievalSource[];
 };
 
 export type DocumentStatus = 'queued' | 'indexing' | 'indexed' | 'failed' | 'cancelled' | 'cancelling' | string;
@@ -68,6 +68,46 @@ export type RagSource = {
   source_type: string;
   distance?: number | null;
 };
+
+export type Workspace = {
+  id: string;
+  name: string;
+  root_path: string;
+  status: string;
+  error_message?: string | null;
+  indexed_at?: string | null;
+  file_count: number;
+  symbol_count: number;
+  embedding_model: string;
+  progress_done: number;
+  progress_total: number;
+  created_at: string;
+  updated_at: string;
+};
+
+export type WorkspaceFile = {
+  id: string;
+  workspace_id: string;
+  relative_path: string;
+  language: string;
+  status: string;
+  size_bytes: number;
+  last_modified: string;
+  indexed_at?: string | null;
+  chunk_count: number;
+};
+
+export type WorkspaceSource = {
+  file_path: string;
+  language: string;
+  chunk_type: string;
+  symbol_name?: string | null;
+  start_line: number;
+  end_line: number;
+  score: number;
+};
+
+export type RetrievalSource = RagSource | WorkspaceSource;
 
 export type GpuStats = {
   name?: string | null;

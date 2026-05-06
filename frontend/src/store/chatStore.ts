@@ -2,6 +2,7 @@ import { create } from 'zustand';
 
 import { api } from '../services/api';
 import type { Chat, Message, OllamaHealth, OllamaModel } from '../types/api';
+import { useWorkspaceStore } from './workspaceStore';
 
 type ChatState = {
   chats: Chat[];
@@ -17,6 +18,7 @@ type ChatState = {
   error: string | null;
   controller: AbortController | null;
   useKnowledgeBase: boolean;
+  useWorkspace: boolean;
   bootstrap: () => Promise<void>;
   createChat: () => Promise<void>;
   selectChat: (chatId: number) => Promise<void>;
@@ -26,6 +28,7 @@ type ChatState = {
   setSearchQuery: (query: string) => void;
   setSelectedModel: (model: string) => void;
   setUseKnowledgeBase: (enabled: boolean) => void;
+  setUseWorkspace: (enabled: boolean) => void;
   sendMessage: (content: string) => Promise<void>;
   stopGeneration: () => void;
 };
@@ -46,6 +49,7 @@ export const useChatStore = create<ChatState>((set, get) => ({
   error: null,
   controller: null,
   useKnowledgeBase: false,
+  useWorkspace: false,
 
   bootstrap: async () => {
     set({ isLoading: true, error: null });
@@ -111,6 +115,7 @@ export const useChatStore = create<ChatState>((set, get) => ({
 
   setSelectedModel: (selectedModel) => set({ selectedModel }),
   setUseKnowledgeBase: (useKnowledgeBase) => set({ useKnowledgeBase }),
+  setUseWorkspace: (useWorkspace) => set({ useWorkspace }),
 
   sendMessage: async (content) => {
     const trimmed = content.trim();
@@ -128,13 +133,17 @@ export const useChatStore = create<ChatState>((set, get) => ({
       set({ error: 'Select an installed local Ollama model first.' });
       return;
     }
+    if (get().useWorkspace && !useWorkspaceStore.getState().activeWorkspaceId) {
+      set({ error: 'Connect and select a workspace first.' });
+      return;
+    }
 
     const controller = new AbortController();
     const assistantId = optimisticId();
     const now = new Date().toISOString();
     const startedAt = performance.now();
     let streamedChars = 0;
-    let ragSources: Message['sources'] = [];
+    let retrievedSources: Message['sources'] = [];
     set((state) => ({
       error: null,
       isStreaming: true,
@@ -159,12 +168,29 @@ export const useChatStore = create<ChatState>((set, get) => ({
           ),
         }));
       };
-      if (get().useKnowledgeBase) {
+      if (get().useWorkspace) {
+        const activeWorkspaceId = useWorkspaceStore.getState().activeWorkspaceId;
+        if (!activeWorkspaceId) {
+          set({ error: 'Connect and select a workspace first.', isStreaming: false, controller: null });
+          return;
+        }
+        await api.streamWorkspaceChat(
+          { chat_id: chatId, workspace_id: activeWorkspaceId, model: selectedModel, message: trimmed },
+          onChunk,
+          (sources) => {
+            retrievedSources = sources;
+            set((state) => ({
+              messages: state.messages.map((message) => (message.id === assistantId ? { ...message, sources } : message)),
+            }));
+          },
+          controller.signal,
+        );
+      } else if (get().useKnowledgeBase) {
         await api.streamRagChat(
           { chat_id: chatId, model: selectedModel, message: trimmed },
           onChunk,
           (sources) => {
-            ragSources = sources;
+            retrievedSources = sources;
             set((state) => ({
               messages: state.messages.map((message) => (message.id === assistantId ? { ...message, sources } : message)),
             }));
@@ -180,9 +206,9 @@ export const useChatStore = create<ChatState>((set, get) => ({
       }
       const [chats, messages] = await Promise.all([api.chats(), api.messages(chatId)]);
       const hydratedMessages =
-        get().useKnowledgeBase && ragSources.length
+        (get().useKnowledgeBase || get().useWorkspace) && retrievedSources.length
           ? messages.map((message, index) =>
-              index === messages.length - 1 && message.role === 'assistant' ? { ...message, sources: ragSources } : message,
+              index === messages.length - 1 && message.role === 'assistant' ? { ...message, sources: retrievedSources } : message,
             )
           : messages;
       set({ chats, messages: hydratedMessages, isStreaming: false, controller: null });
