@@ -2,6 +2,7 @@ import { create } from 'zustand';
 
 import { api } from '../services/api';
 import type { Chat, Message, OllamaHealth, OllamaModel } from '../types/api';
+import { useMultimodalStore } from './multimodalStore';
 import { useWorkspaceStore } from './workspaceStore';
 
 type ChatState = {
@@ -168,8 +169,31 @@ export const useChatStore = create<ChatState>((set, get) => ({
           ),
         }));
       };
-      if (get().useWorkspace) {
-        const activeWorkspaceId = useWorkspaceStore.getState().activeWorkspaceId;
+      const pendingImages = useMultimodalStore.getState().pendingImages;
+      const activeWorkspaceId = useWorkspaceStore.getState().activeWorkspaceId;
+      if (pendingImages.length) {
+        const uploadedImages = await useMultimodalStore.getState().ensureUploaded(chatId);
+        await api.streamMultimodalChat(
+          {
+            chat_id: chatId,
+            model: selectedModel,
+            message: trimmed,
+            image_ids: uploadedImages.map((image) => image.id),
+            workspace_id: activeWorkspaceId || null,
+            use_workspace: get().useWorkspace,
+            use_knowledge_base: get().useKnowledgeBase,
+          },
+          onChunk,
+          (sources) => {
+            retrievedSources = sources;
+            set((state) => ({
+              messages: state.messages.map((message) => (message.id === assistantId ? { ...message, sources } : message)),
+            }));
+          },
+          controller.signal,
+        );
+        useMultimodalStore.getState().clearImages();
+      } else if (get().useWorkspace) {
         if (!activeWorkspaceId) {
           set({ error: 'Connect and select a workspace first.', isStreaming: false, controller: null });
           return;

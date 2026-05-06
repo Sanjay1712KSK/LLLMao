@@ -13,6 +13,7 @@ export type OllamaModel = {
   family?: string | null;
   parameter_size?: string | null;
   quantization_level?: string | null;
+  capabilities?: string[];
 };
 
 export type Chat = {
@@ -108,6 +109,28 @@ export type WorkspaceSource = {
 };
 
 export type RetrievalSource = RagSource | WorkspaceSource;
+
+export type ImageAsset = {
+  id: string;
+  chat_id?: number | null;
+  filename: string;
+  mime_type: string;
+  width: number;
+  height: number;
+  size_bytes: number;
+  created_at: string;
+};
+
+export type RetrievalDebug = {
+  id: string;
+  chat_id?: number | null;
+  mode: string;
+  query: string;
+  sources: Record<string, unknown>[];
+  context_summary: string;
+  token_budget: number;
+  created_at: string;
+};
 
 export type GpuStats = {
   name?: string | null;

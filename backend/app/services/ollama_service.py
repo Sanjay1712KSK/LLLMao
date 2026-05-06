@@ -1,5 +1,6 @@
 import json
 from collections.abc import AsyncGenerator
+from typing import Any
 
 import httpx
 
@@ -43,11 +44,23 @@ class OllamaService:
                     "family": details.get("family"),
                     "parameter_size": details.get("parameter_size"),
                     "quantization_level": details.get("quantization_level"),
+                    "capabilities": self._capabilities(item.get("name", ""), details),
                 }
             )
         return [model for model in models if model["name"]]
 
-    async def stream_chat(self, model: str, messages: list[dict[str, str]]) -> AsyncGenerator[str, None]:
+    def _capabilities(self, name: str, details: dict) -> list[str]:
+        lowered = name.lower()
+        families = [str(item).lower() for item in details.get("families") or []]
+        family = str(details.get("family") or "").lower()
+        capabilities = ["chat"]
+        if "clip" in families or "llava" in lowered or "vl" in lowered or "vision" in lowered:
+            capabilities.append("vision")
+        if "embed" in lowered or "bert" in family or "nomic-bert" in families:
+            capabilities = ["embedding"]
+        return capabilities
+
+    async def stream_chat(self, model: str, messages: list[dict[str, Any]]) -> AsyncGenerator[str, None]:
         payload = {"model": model, "messages": messages, "stream": True}
         try:
             async with httpx.AsyncClient(timeout=None) as client:

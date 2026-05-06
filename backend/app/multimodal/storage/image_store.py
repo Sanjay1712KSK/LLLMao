@@ -1,0 +1,46 @@
+from __future__ import annotations
+
+import base64
+import shutil
+import uuid
+from pathlib import Path
+
+from fastapi import UploadFile
+
+from app.config import get_settings
+from app.models import ImageAsset
+from app.multimodal.image_processing import ImageProcessor
+
+
+class ImageStore:
+    def __init__(self) -> None:
+        settings = get_settings()
+        self.root = Path(settings.image_path)
+        self.root.mkdir(parents=True, exist_ok=True)
+        self.processor = ImageProcessor()
+
+    async def save_upload(self, file: UploadFile, chat_id: int | None = None) -> ImageAsset:
+        image_id = str(uuid.uuid4())
+        safe_name = Path(file.filename or f"{image_id}.png").name
+        staging = self.root / f"{image_id}.upload"
+        suffix = Path(safe_name).suffix.lower() or ".jpg"
+        target = self.root / f"{image_id}{suffix}"
+        thumbnail = self.root / f"{image_id}.thumb.jpg"
+        with staging.open("wb") as handle:
+            shutil.copyfileobj(file.file, handle)
+        width, height, size_bytes, mime_type = self.processor.normalize(staging, target, thumbnail)
+        staging.unlink(missing_ok=True)
+        return ImageAsset(
+            id=image_id,
+            chat_id=chat_id,
+            filename=safe_name,
+            mime_type=mime_type,
+            storage_path=str(target),
+            thumbnail_path=str(thumbnail),
+            width=width,
+            height=height,
+            size_bytes=size_bytes,
+        )
+
+    def as_ollama_base64(self, image: ImageAsset) -> str:
+        return base64.b64encode(Path(image.storage_path).read_bytes()).decode("ascii")

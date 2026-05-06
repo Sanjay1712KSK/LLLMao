@@ -10,9 +10,11 @@ class Settings(BaseSettings):
     ollama_base_url: str = "http://localhost:11434"
     database_url: str = f"sqlite:///{Path(__file__).resolve().parents[2] / 'database' / 'workspace.sqlite3'}"
     upload_path: str = str(Path(__file__).resolve().parents[2] / "uploads")
+    image_path: str = str(Path(__file__).resolve().parents[2] / "images")
     chroma_path: str = str(Path(__file__).resolve().parents[2] / "database" / "chroma")
     rag_embedding_model: str = "nomic-embed-text"
     rag_retrieval_limit: int = 5
+    context_token_budget: int = 3200
     cors_origins: list[str] = [
         "http://localhost:1420",
         "http://127.0.0.1:1420",

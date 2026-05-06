@@ -1,11 +1,13 @@
 import type {
   Chat,
+  ImageAsset,
   KnowledgeChunk,
   KnowledgeDocument,
   Message,
   OllamaHealth,
   OllamaModel,
   RagSource,
+  RetrievalDebug,
   SystemStats,
   Workspace,
   WorkspaceFile,
@@ -78,6 +80,24 @@ export const api = {
       request.onerror = () => reject(new Error('Upload failed'));
       request.send(formData);
     }),
+  uploadImage: (file: File, chatId?: number | null) =>
+    new Promise<ImageAsset>((resolve, reject) => {
+      const formData = new FormData();
+      formData.append('file', file);
+      const request = new XMLHttpRequest();
+      request.open('POST', `${API_BASE_URL}/images/upload${chatId ? `?chat_id=${chatId}` : ''}`);
+      request.onload = () => {
+        if (request.status >= 200 && request.status < 300) {
+          resolve(JSON.parse(request.responseText) as ImageAsset);
+        } else {
+          reject(new Error(request.responseText || request.statusText));
+        }
+      };
+      request.onerror = () => reject(new Error('Image upload failed'));
+      request.send(formData);
+    }),
+  imageThumbnailUrl: (imageId: string) => `${API_BASE_URL}/images/${imageId}/thumbnail`,
+  retrievalDebug: (chatId?: number | null) => jsonRequest<RetrievalDebug[]>(`/retrieval/debug${chatId ? `?chat_id=${chatId}` : ''}`),
   streamChat: async (
     payload: { chat_id: number; model: string; message: string },
     onChunk: (chunk: string) => void,
@@ -146,6 +166,53 @@ export const api = {
     signal?: AbortSignal,
   ) => {
     const response = await fetch(`${API_BASE_URL}/workspace/chat`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+      signal,
+    });
+    if (!response.ok || !response.body) {
+      throw new Error((await response.text()) || response.statusText);
+    }
+    const reader = response.body.getReader();
+    const decoder = new TextDecoder();
+    let buffer = '';
+    const dispatchEvent = (raw: string) => {
+      const lines = raw.split('\n');
+      const event = lines.find((line) => line.startsWith('event:'))?.slice(6).trim();
+      const data = lines
+        .filter((line) => line.startsWith('data:'))
+        .map((line) => line.slice(5).trim())
+        .join('\n');
+      if (!event || !data) return;
+      if (event === 'sources') onSources(JSON.parse(data) as WorkspaceSource[]);
+      if (event === 'token') onChunk(JSON.parse(data) as string);
+    };
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      buffer += decoder.decode(value, { stream: true });
+      const events = buffer.split('\n\n');
+      buffer = events.pop() ?? '';
+      events.forEach(dispatchEvent);
+    }
+    if (buffer.trim()) dispatchEvent(buffer);
+  },
+  streamMultimodalChat: async (
+    payload: {
+      chat_id: number;
+      model: string;
+      message: string;
+      image_ids: string[];
+      workspace_id?: string | null;
+      use_workspace: boolean;
+      use_knowledge_base: boolean;
+    },
+    onChunk: (chunk: string) => void,
+    onSources: (sources: WorkspaceSource[]) => void,
+    signal?: AbortSignal,
+  ) => {
+    const response = await fetch(`${API_BASE_URL}/multimodal/chat`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload),

@@ -4,6 +4,7 @@ import clsx from 'clsx';
 
 import { useChatStore } from '../store/chatStore';
 import { KnowledgeBasePanel } from './KnowledgeBasePanel';
+import { RetrievalDebugPanel } from './RetrievalDebugPanel';
 import { WorkspacePanel } from './WorkspacePanel';
 
 export function Sidebar() {
@@ -101,6 +102,7 @@ export function Sidebar() {
       </nav>
       <WorkspacePanel />
       <KnowledgeBasePanel />
+      <RetrievalDebugPanel />
     </aside>
   );
 }

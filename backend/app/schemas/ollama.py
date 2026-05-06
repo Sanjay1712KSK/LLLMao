@@ -8,6 +8,7 @@ class ModelRead(BaseModel):
     family: str | None = None
     parameter_size: str | None = None
     quantization_level: str | None = None
+    capabilities: list[str] = []
 
 
 class HealthRead(BaseModel):

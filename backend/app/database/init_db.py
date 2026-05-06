@@ -1,10 +1,11 @@
 from app.database.session import Base, engine
-from app.models import chat, rag, workspace
+from app.models import chat, multimodal, rag, workspace
 from sqlalchemy import inspect, text
 
 
 def init_db() -> None:
     _ = chat
+    _ = multimodal
     _ = rag
     _ = workspace
     Base.metadata.create_all(bind=engine)
