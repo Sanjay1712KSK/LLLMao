@@ -8,7 +8,7 @@ class Settings(BaseSettings):
     app_name: str = "MyOwnRTXChat"
     api_prefix: str = ""
     ollama_base_url: str = "http://localhost:11434"
-    database_url: str = f"sqlite:///{Path(__file__).resolve().parents[2].parent / 'database' / 'workspace.sqlite3'}"
+    database_url: str = f"sqlite:///{Path(__file__).resolve().parents[2] / 'database' / 'workspace.sqlite3'}"
     cors_origins: list[str] = [
         "http://localhost:1420",
         "http://127.0.0.1:1420",
