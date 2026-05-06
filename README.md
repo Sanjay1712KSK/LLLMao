@@ -73,6 +73,7 @@ npm run dev
 ## API
 
 - `GET /health`: verifies local Ollama availability
+- `GET /stats`: returns lightweight local CPU/RAM/GPU/Ollama/database telemetry
 - `GET /models`: returns installed Ollama models
 - `GET /chats`: returns saved chats
 - `POST /chats`: creates a chat
@@ -80,6 +81,14 @@ npm run dev
 - `DELETE /chats/{chat_id}`: deletes a chat
 - `GET /messages/{chat_id}`: returns messages for a chat
 - `POST /chat`: streams a response from the selected local model
+
+## Phase 2 Monitoring
+
+The live dashboard polls lightweight local telemetry only. GPU metrics degrade safely:
+
+- NVIDIA: optional `pynvml`
+- AMD: optional `rocm-smi` JSON output when available
+- CPU-only: dashboard remains usable with GPU metrics marked unavailable
 
 ## License
 

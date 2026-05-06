@@ -22,3 +22,4 @@ $XDG_DATA_HOME/myownrtxchat/workspace.sqlite3
 - Do not install or pull Ollama models from the application.
 - Do not hardcode user-specific paths.
 - Keep network behavior local to `127.0.0.1` and `localhost`.
+- Treat GPU telemetry as optional. Packages may include monitoring dependencies, but absence of NVIDIA, AMD, or ROCm tooling must not prevent the app from starting.

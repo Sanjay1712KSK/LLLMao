@@ -5,15 +5,21 @@ import { ChatInput } from '../components/ChatInput';
 import { ChatView } from '../components/ChatView';
 import { Header } from '../components/Header';
 import { Sidebar } from '../components/Sidebar';
+import { SystemDashboard } from '../components/SystemDashboard';
 import { useChatStore } from '../store/chatStore';
+import { useSystemStore } from '../store/systemStore';
 
 export default function App() {
   const bootstrap = useChatStore((state) => state.bootstrap);
+  const startPolling = useSystemStore((state) => state.startPolling);
+  const stopPolling = useSystemStore((state) => state.stopPolling);
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   useEffect(() => {
     void bootstrap();
-  }, [bootstrap]);
+    startPolling();
+    return () => stopPolling();
+  }, [bootstrap, startPolling, stopPolling]);
 
   return (
     <div className="h-screen overflow-hidden bg-surface text-ink">
@@ -39,6 +45,7 @@ export default function App() {
           <ChatView />
           <ChatInput />
         </section>
+        <SystemDashboard />
       </div>
     </div>
   );

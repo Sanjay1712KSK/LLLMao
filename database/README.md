@@ -10,7 +10,7 @@ database/workspace.sqlite3
 
 The schema is created automatically on backend startup:
 
-- `chats`: `id`, `title`, `created_at`
+- `chats`: `id`, `title`, `pinned`, `created_at`, `updated_at`
 - `messages`: `id`, `chat_id`, `role`, `content`, `created_at`
 
 SQLite artifacts are ignored by git.

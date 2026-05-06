@@ -25,7 +25,7 @@ export function ChatView() {
     <main className="min-h-0 flex-1 overflow-y-auto scroll-smooth px-4 py-6">
       <div className="mx-auto max-w-4xl space-y-6">
         {!messages.length && (
-          <div className="py-24 text-center">
+          <div className="py-20 text-center">
             <h1 className="text-3xl font-semibold tracking-normal text-ink">What are we building locally?</h1>
             <p className="mt-3 text-sm text-muted">Chat with already-installed Ollama models. No cloud inference, no model management.</p>
           </div>
@@ -47,7 +47,15 @@ export function ChatView() {
               {message.role === 'assistant' ? 'AI' : 'You'}
             </div>
             <div className="min-w-0 flex-1 text-sm leading-7 text-ink">
-              {message.content ? <MarkdownMessage content={message.content} /> : <span className="text-muted">Thinking...</span>}
+              {message.content ? (
+                <MarkdownMessage content={message.content} />
+              ) : (
+                <span className="inline-flex items-center gap-1 text-muted">
+                  <span className="h-1.5 w-1.5 rounded-full bg-muted" />
+                  <span className="h-1.5 w-1.5 rounded-full bg-muted/70" />
+                  <span className="h-1.5 w-1.5 rounded-full bg-muted/40" />
+                </span>
+              )}
             </div>
           </article>
         ))}

@@ -1,13 +1,15 @@
-import { Edit3, MessageSquare, Plus, Trash2 } from 'lucide-react';
+import { Edit3, MessageSquare, Pin, PinOff, Plus, Search, Trash2 } from 'lucide-react';
 import { useState } from 'react';
 import clsx from 'clsx';
 
 import { useChatStore } from '../store/chatStore';
 
 export function Sidebar() {
-  const { chats, currentChatId, createChat, selectChat, renameChat, deleteChat } = useChatStore();
+  const { chats, currentChatId, createChat, selectChat, renameChat, togglePinned, deleteChat, searchQuery, setSearchQuery } =
+    useChatStore();
   const [editingId, setEditingId] = useState<number | null>(null);
   const [draft, setDraft] = useState('');
+  const visibleChats = chats.filter((chat) => chat.title.toLowerCase().includes(searchQuery.trim().toLowerCase()));
 
   const startRename = (id: number, title: string) => {
     setEditingId(id);
@@ -31,9 +33,18 @@ export function Sidebar() {
           <Plus size={17} />
           New Chat
         </button>
+        <div className="mt-3 flex h-10 items-center gap-2 rounded-lg border border-line bg-surface px-3 text-muted">
+          <Search size={15} />
+          <input
+            className="min-w-0 flex-1 bg-transparent text-sm text-ink outline-none placeholder:text-muted"
+            placeholder="Search chats"
+            value={searchQuery}
+            onChange={(event) => setSearchQuery(event.target.value)}
+          />
+        </div>
       </div>
       <nav className="min-h-0 flex-1 space-y-1 overflow-y-auto p-2">
-        {chats.map((chat) => (
+        {visibleChats.map((chat) => (
           <div
             key={chat.id}
             className={clsx(
@@ -41,7 +52,7 @@ export function Sidebar() {
               currentChatId === chat.id ? 'bg-white/10 text-ink' : 'text-muted hover:bg-white/5 hover:text-ink',
             )}
           >
-            <MessageSquare size={16} className="shrink-0" />
+            {chat.pinned ? <Pin size={16} className="shrink-0 text-accent" /> : <MessageSquare size={16} className="shrink-0" />}
             {editingId === chat.id ? (
               <input
                 className="min-w-0 flex-1 rounded border border-line bg-surface px-2 py-1 text-sm text-ink outline-none"
@@ -59,6 +70,14 @@ export function Sidebar() {
                 {chat.title}
               </button>
             )}
+            <button
+              className="rounded p-1 opacity-0 hover:bg-white/10 group-hover:opacity-100"
+              onClick={() => togglePinned(chat.id)}
+              type="button"
+              title={chat.pinned ? 'Unpin chat' : 'Pin chat'}
+            >
+              {chat.pinned ? <PinOff size={14} /> : <Pin size={14} />}
+            </button>
             <button
               className="rounded p-1 opacity-0 hover:bg-white/10 group-hover:opacity-100"
               onClick={() => startRename(chat.id, chat.title)}

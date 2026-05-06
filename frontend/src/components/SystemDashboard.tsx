@@ -1,5 +1,6 @@
 import { Activity, Bot, Cpu, Database, Gauge, HardDrive, MemoryStick, Server, Wifi, WifiOff } from 'lucide-react';
 import clsx from 'clsx';
+import type React from 'react';
 
 import { formatBytes } from '../lib/format';
 import { useChatStore } from '../store/chatStore';

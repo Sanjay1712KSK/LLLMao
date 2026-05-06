@@ -13,6 +13,17 @@ The application does not install, download, bundle, redistribute, or manage mode
 - `database/`: local SQLite runtime storage.
 - `tauri/`: Tauri desktop shell and future Linux packaging configuration.
 
+## Phase 2 Monitoring
+
+The backend exposes `/stats` through a modular system monitor. CPU and RAM metrics use `psutil`. NVIDIA telemetry uses optional `pynvml` when available. AMD telemetry is attempted through `rocm-smi` when present. If GPU telemetry is unavailable, GPU fields return `null` and the app continues in CPU-only mode.
+
+Frontend polling is intentionally lightweight:
+
+- `/stats` every 1 second
+- `/health` every 5 seconds
+
+Polling intervals are owned by a Zustand store and cleaned up when the app unmounts.
+
 ## Startup Flow
 
 1. Launch the desktop shell or browser dev frontend.
