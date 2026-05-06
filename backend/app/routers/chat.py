@@ -3,7 +3,7 @@ from fastapi.responses import StreamingResponse
 from sqlalchemy.orm import Session
 
 from app.database import get_db
-from app.schemas import ChatCreate, ChatRead, ChatRequest, MessageRead, RenameChatRequest
+from app.schemas import ChatCreate, ChatRead, ChatRequest, ChatUpdate, MessageRead
 from app.services import chat_service
 from app.services.ollama_service import OllamaService, OllamaUnavailableError
 
@@ -21,8 +21,8 @@ def post_chat(payload: ChatCreate, db: Session = Depends(get_db)) -> ChatRead:
 
 
 @router.patch("/chats/{chat_id}", response_model=ChatRead)
-def patch_chat(chat_id: int, payload: RenameChatRequest, db: Session = Depends(get_db)) -> ChatRead:
-    chat = chat_service.rename_chat(db, chat_id, payload.title)
+def patch_chat(chat_id: int, payload: ChatUpdate, db: Session = Depends(get_db)) -> ChatRead:
+    chat = chat_service.update_chat(db, chat_id, title=payload.title, pinned=payload.pinned)
     if chat is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Chat not found")
     return ChatRead.model_validate(chat)

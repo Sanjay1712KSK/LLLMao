@@ -1,12 +1,13 @@
-from app.schemas.chat import ChatCreate, ChatRead, MessageRead, RenameChatRequest
-from app.schemas.ollama import ChatRequest, HealthRead, ModelRead
+from app.schemas.chat import ChatCreate, ChatRead, ChatUpdate, MessageRead
+from app.schemas.ollama import ChatRequest, HealthRead, ModelRead, SystemStatsRead
 
 __all__ = [
     "ChatCreate",
     "ChatRead",
+    "ChatUpdate",
     "MessageRead",
-    "RenameChatRequest",
     "ChatRequest",
     "HealthRead",
     "ModelRead",
+    "SystemStatsRead",
 ]
