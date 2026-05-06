@@ -1,4 +1,4 @@
-# MyOwnRTXChat
+# LLLMao - Local Large Language Model assistant orchestrator
 
 A lightweight Linux-native local AI workspace for already-installed Ollama models.
 
