@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import imghdr
 from pathlib import Path
 
 
@@ -14,7 +13,12 @@ class ImageProcessor:
     thumb_size = (360, 240)
 
     def validate(self, path: Path) -> str:
-        kind = imghdr.what(path)
+        try:
+            from PIL import Image
+        except ImportError as exc:
+            raise UnsupportedImageError("Image support requires Pillow. Install backend requirements.") from exc
+        with Image.open(path) as image:
+            kind = (image.format or "").lower()
         if kind == "jpg":
             kind = "jpeg"
         if kind not in self.supported_types:
@@ -23,10 +27,7 @@ class ImageProcessor:
 
     def normalize(self, source: Path, target: Path, thumbnail: Path) -> tuple[int, int, int, str]:
         mime_type = self.validate(source)
-        try:
-            from PIL import Image, ImageOps
-        except ImportError as exc:
-            raise UnsupportedImageError("Image support requires Pillow. Install backend requirements.") from exc
+        from PIL import Image, ImageOps
 
         with Image.open(source) as image:
             image = ImageOps.exif_transpose(image)
