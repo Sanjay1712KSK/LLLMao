@@ -24,4 +24,4 @@ def migrate_sqlite_schema() -> None:
             connection.execute(text("ALTER TABLE chats ADD COLUMN pinned BOOLEAN NOT NULL DEFAULT 0"))
         if "updated_at" not in columns:
             connection.execute(text("ALTER TABLE chats ADD COLUMN updated_at DATETIME"))
-            connection.execute(text("UPDATE chats SET updated_at = COALESCE(created_at, CURRENT_TIMESTAMP) WHERE updated_at IS NULL"))
+        connection.execute(text("UPDATE chats SET updated_at = COALESCE(created_at, CURRENT_TIMESTAMP) WHERE updated_at IS NULL"))
