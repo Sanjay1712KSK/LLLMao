@@ -134,6 +134,7 @@ export const useChatStore = create<ChatState>((set, get) => ({
     const now = new Date().toISOString();
     const startedAt = performance.now();
     let streamedChars = 0;
+    let ragSources: Message['sources'] = [];
     set((state) => ({
       error: null,
       isStreaming: true,
@@ -163,6 +164,7 @@ export const useChatStore = create<ChatState>((set, get) => ({
           { chat_id: chatId, model: selectedModel, message: trimmed },
           onChunk,
           (sources) => {
+            ragSources = sources;
             set((state) => ({
               messages: state.messages.map((message) => (message.id === assistantId ? { ...message, sources } : message)),
             }));
@@ -177,7 +179,13 @@ export const useChatStore = create<ChatState>((set, get) => ({
         );
       }
       const [chats, messages] = await Promise.all([api.chats(), api.messages(chatId)]);
-      set({ chats, messages, isStreaming: false, controller: null });
+      const hydratedMessages =
+        get().useKnowledgeBase && ragSources.length
+          ? messages.map((message, index) =>
+              index === messages.length - 1 && message.role === 'assistant' ? { ...message, sources: ragSources } : message,
+            )
+          : messages;
+      set({ chats, messages: hydratedMessages, isStreaming: false, controller: null });
     } catch (error) {
       if ((error as Error).name !== 'AbortError') {
         set({ error: error instanceof Error ? error.message : 'Chat request failed' });

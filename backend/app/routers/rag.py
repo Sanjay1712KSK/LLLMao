@@ -13,7 +13,7 @@ from sqlalchemy.orm import Session
 from app.config import get_settings
 from app.database import get_db
 from app.models import Document, DocumentChunk
-from app.rag.indexing import DocumentIndexer, indexing_cancellations
+from app.rag.indexing import DocumentIndexer, indexing_cancellations, indexing_progress
 from app.rag.parsers import DocumentParser
 from app.rag.retrieval.pipeline import RagRetrievalPipeline, build_contextual_messages
 from app.rag.vectorstore import ChromaVectorStore, VectorStoreUnavailableError
@@ -27,6 +27,17 @@ router = APIRouter(tags=["rag"])
 def _file_type(filename: str) -> str:
     suffix = Path(filename).suffix.lower().lstrip(".")
     return "md" if suffix == "markdown" else suffix
+
+
+def _document_read(document: Document) -> DocumentRead:
+    payload = DocumentRead.model_validate(document)
+    progress = indexing_progress.get(document.id) or {}
+    return payload.model_copy(
+        update={
+            "progress_done": int(progress.get("done") or document.chunk_count or 0),
+            "progress_total": int(progress.get("total") or document.chunk_count or 0),
+        }
+    )
 
 
 @router.post("/upload", response_model=DocumentRead, status_code=status.HTTP_201_CREATED)
@@ -60,13 +71,13 @@ async def upload_document(
     db.commit()
     db.refresh(document)
     background_tasks.add_task(DocumentIndexer(settings.rag_embedding_model).index, document.id)
-    return DocumentRead.model_validate(document)
+    return _document_read(document)
 
 
 @router.get("/documents", response_model=list[DocumentRead])
 def list_documents(db: Session = Depends(get_db)) -> list[DocumentRead]:
     documents = db.scalars(select(Document).order_by(Document.created_at.desc())).all()
-    return [DocumentRead.model_validate(document) for document in documents]
+    return [_document_read(document) for document in documents]
 
 
 @router.delete("/documents/{document_id}", status_code=status.HTTP_204_NO_CONTENT)
@@ -96,7 +107,7 @@ def reindex_document(document_id: str, background_tasks: BackgroundTasks, db: Se
     db.commit()
     db.refresh(document)
     background_tasks.add_task(DocumentIndexer(get_settings().rag_embedding_model).index, document.id)
-    return DocumentRead.model_validate(document)
+    return _document_read(document)
 
 
 @router.post("/documents/{document_id}/cancel", response_model=DocumentRead)
@@ -108,7 +119,7 @@ def cancel_indexing(document_id: str, db: Session = Depends(get_db)) -> Document
     document.status = "cancelling"
     db.commit()
     db.refresh(document)
-    return DocumentRead.model_validate(document)
+    return _document_read(document)
 
 
 @router.get("/documents/{document_id}/chunks", response_model=list[DocumentChunkRead])

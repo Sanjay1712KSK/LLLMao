@@ -98,6 +98,14 @@ export function KnowledgeBasePanel() {
                   <span>{document.file_type.toUpperCase()}</span>
                 </div>
                 {document.error_message && <div className="mt-1 max-h-8 overflow-hidden text-[11px] text-red-300">{document.error_message}</div>}
+                {document.progress_total > 0 && ['queued', 'indexing'].includes(document.status) && (
+                  <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-white/10">
+                    <div
+                      className="h-full bg-accent"
+                      style={{ width: `${Math.round((document.progress_done / document.progress_total) * 100)}%` }}
+                    />
+                  </div>
+                )}
               </div>
             </div>
             <div className="mt-2 flex items-center justify-end gap-1">

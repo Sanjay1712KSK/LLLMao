@@ -43,6 +43,8 @@ export type KnowledgeDocument = {
   indexed_at?: string | null;
   chunk_count: number;
   embedding_model: string;
+  progress_done: number;
+  progress_total: number;
   created_at: string;
   updated_at: string;
 };

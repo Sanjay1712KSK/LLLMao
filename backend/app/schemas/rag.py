@@ -12,6 +12,8 @@ class DocumentRead(BaseModel):
     indexed_at: datetime | None = None
     chunk_count: int
     embedding_model: str
+    progress_done: int = 0
+    progress_total: int = 0
     created_at: datetime
     updated_at: datetime
 
