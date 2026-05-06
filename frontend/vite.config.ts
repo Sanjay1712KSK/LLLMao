@@ -8,5 +8,16 @@ export default defineConfig({
     port: 1420,
     strictPort: false,
   },
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          react: ['react', 'react-dom'],
+          markdown: ['react-markdown', 'remark-gfm', 'rehype-highlight', 'highlight.js'],
+          state: ['zustand'],
+        },
+      },
+    },
+  },
   clearScreen: false,
 });

@@ -1,3 +1,4 @@
+import asyncio
 import json
 import shutil
 import subprocess
@@ -28,15 +29,20 @@ class SystemMonitor:
 
     async def collect(self, db: Session) -> dict[str, Any]:
         ram = self._ram()
+        gpu, active_model, ollama_ok = await asyncio.gather(
+            self._gpu_async(),
+            self.active_model(),
+            self.ollama_ok(),
+        )
         return {
             "cpu_percent": self._cpu_percent(),
             "ram_percent": ram.percent,
             "ram_used_mb": round(ram.used / 1024 / 1024, 1),
             "ram_total_mb": round(ram.total / 1024 / 1024, 1),
-            "gpu": self._gpu(),
-            "active_model": await self.active_model(),
+            "gpu": gpu,
+            "active_model": active_model,
             "backend_ok": True,
-            "ollama_ok": await self.ollama_ok(),
+            "ollama_ok": ollama_ok,
             "database_ok": self.database_ok(db),
         }
 
@@ -52,7 +58,15 @@ class SystemMonitor:
     def _gpu(self) -> GpuStats | None:
         return self._nvidia_gpu() or self._amd_gpu()
 
+    async def _gpu_async(self) -> GpuStats | None:
+        try:
+            return await asyncio.wait_for(asyncio.to_thread(self._gpu), timeout=0.8)
+        except Exception:
+            return None
+
     def _nvidia_gpu(self) -> GpuStats | None:
+        if not shutil.which("nvidia-smi"):
+            return None
         try:
             import pynvml
 
@@ -119,7 +133,8 @@ class SystemMonitor:
 
     async def ollama_ok(self) -> bool:
         try:
-            async with httpx.AsyncClient(timeout=1.5) as client:
+            timeout = httpx.Timeout(0.8, connect=0.2)
+            async with httpx.AsyncClient(timeout=timeout) as client:
                 response = await client.get(f"{self.ollama_base_url}/api/tags")
                 response.raise_for_status()
             return True
@@ -128,7 +143,8 @@ class SystemMonitor:
 
     async def active_model(self) -> str | None:
         try:
-            async with httpx.AsyncClient(timeout=1.5) as client:
+            timeout = httpx.Timeout(0.8, connect=0.2)
+            async with httpx.AsyncClient(timeout=timeout) as client:
                 response = await client.get(f"{self.ollama_base_url}/api/ps")
                 response.raise_for_status()
             models = response.json().get("models", [])
