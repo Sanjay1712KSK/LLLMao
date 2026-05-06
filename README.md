@@ -1,95 +1,352 @@
-# LLLMao - Local Large Language Model assistant orchestrator
+# LLLMao
 
-A lightweight Linux-native local AI workspace for already-installed Ollama models.
+**Local Lightweight Language Model Assistant Orchestrator**
 
-Phase 1 provides a ChatGPT-style desktop-ready foundation with React, Vite, Tailwind CSS, Zustand, FastAPI, SQLite, and a Tauri-ready shell. Phase 2 adds live local system monitoring and advanced chat workflow polish.
+LLLMao is a lightweight local-first AI workspace for conversational AI, RAG workflows, semantic workspace indexing, and multimodal development assistance powered entirely by locally installed [Ollama](https://ollama.com?utm_source=chatgpt.com) models.
 
-## Product Boundary
+Designed primarily for:
 
-This application is only a local UI/workspace layer for Ollama.
+* Linux power users
+* robotics developers
+* ROS2 workflows
+* Isaac Sim workflows
+* privacy-focused local AI environments
 
-It does not:
+LLLMao provides a modern ChatGPT-style experience while remaining:
 
-- install models
-- download models
-- bundle model weights
-- redistribute models
-- manage model files
-- perform cloud inference
+* fully offline
+* GPU-vendor agnostic
+* lightweight
+* Linux-native
+* modular and extensible
 
-It does:
+---
 
-- connect to locally running Ollama through `http://localhost:11434`
-- detect already-installed local models
-- provide persistent local chat sessions
-- operate offline
+# Core Philosophy
 
-## Project Structure
+LLLMao is **NOT**:
 
-```text
-.
-├── backend/       FastAPI API, Ollama integration, SQLite persistence
-├── database/      Runtime SQLite location for development
-├── docs/          Architecture and packaging notes
-├── frontend/      React, Vite, Tailwind CSS, Zustand UI
-├── screenshots/   Placeholder for future release screenshots
-├── tauri/         Tauri desktop shell configuration
-├── LICENSE
-└── README.md
+* a hosted AI platform
+* a cloud inference service
+* a model distributor
+* a proprietary model provider
+
+LLLMao is:
+
+* a local AI workspace
+* a UI/orchestration layer
+* a developer-focused local AI environment
+
+The application connects only to already-installed local Ollama models through the Ollama REST API.
+
+---
+
+# Features
+
+## Conversational AI
+
+* ChatGPT-style interface
+* Streaming responses
+* Multi-chat sessions
+* Persistent chat history
+* Markdown rendering
+* Syntax-highlighted code blocks
+
+---
+
+## Local Model Integration
+
+* Dynamic Ollama model detection
+* Runtime model switching
+* Offline-only inference
+* Lightweight architecture
+
+Supported local models include:
+
+* `llama3:8b`
+* `qwen2.5-coder:14b`
+* `tinyllama`
+* `llava`
+* `nomic-embed-text`
+
+---
+
+## RAG Workflows
+
+* PDF uploads
+* Markdown/TXT/DOCX support
+* Semantic chunking
+* ChromaDB vector storage
+* Context-aware retrieval
+* Knowledge base management
+
+---
+
+## Workspace Intelligence
+
+* ROS2 workspace indexing
+* Semantic code chunking
+* Recursive file indexing
+* File watching and auto-reindexing
+* Workspace-aware contextual chat
+* Hybrid retrieval system
+
+---
+
+## Multimodal Support
+
+* Image uploads
+* Screenshot analysis
+* Diagram interpretation
+* Workspace-aware visual reasoning
+* Isaac Sim screenshot workflows
+
+---
+
+## System Monitoring
+
+* GPU usage monitoring
+* VRAM monitoring
+* CPU/RAM monitoring
+* Active model tracking
+* Ollama health monitoring
+
+---
+
+# Architecture
+
+```text id="5s4mkn"
+Frontend (React + Tailwind)
+            ↓
+      Tauri Desktop Layer
+            ↓
+      FastAPI Backend
+            ↓
+        Ollama API
+            ↓
+   Local Ollama Models
 ```
 
-## Run Locally
+---
 
-Start Ollama separately and make sure it is serving at `http://localhost:11434`.
+# Tech Stack
 
-Backend:
+## Frontend
 
-```bash
+* React
+* Vite
+* Tailwind CSS
+* Zustand
+
+---
+
+## Backend
+
+* FastAPI
+* SQLite
+* ChromaDB
+
+---
+
+## Desktop Layer
+
+* Tauri
+
+---
+
+## AI Runtime
+
+* Ollama
+
+---
+
+# Design Goals
+
+LLLMao is designed to:
+
+* remain lightweight
+* work fully offline
+* avoid cloud dependencies
+* remain GPU-vendor agnostic
+* coexist with heavy robotics workloads
+* support large workspaces efficiently
+* feel native on Linux
+
+---
+
+# GPU Compatibility
+
+LLLMao itself contains no vendor-specific inference logic.
+
+Inference occurs exclusively through Ollama, enabling compatibility with:
+
+* NVIDIA GPUs
+* AMD GPUs
+* CPU-only systems
+
+---
+
+# Supported Platforms
+
+Primary target:
+
+* Ubuntu Linux
+
+Planned distribution targets:
+
+* `.deb`
+* Snap Store
+* future Linux repository packaging
+
+---
+
+# Installation
+
+## 1. Install Ollama
+
+Visit:
+
+[Ollama Installation Guide](https://ollama.com/download/linux?utm_source=chatgpt.com)
+
+---
+
+## 2. Pull Local Models
+
+Example:
+
+```bash id="9q4ltn"
+ollama pull llama3:8b
+ollama pull qwen2.5-coder:14b
+ollama pull nomic-embed-text
+ollama pull llava
+```
+
+---
+
+## 3. Clone Repository
+
+```bash id="x2m8qc"
+git clone https://github.com/YOUR_USERNAME/lllmao.git
+cd lllmao
+```
+
+---
+
+## 4. Start Backend
+
+```bash id="c7n4vw"
 cd backend
-python -m venv .venv
-source .venv/bin/activate
+
+python3 -m venv venv
+source venv/bin/activate
+
 pip install -r requirements.txt
-uvicorn app.main:app --reload --host 127.0.0.1 --port 8000
+
+uvicorn main:app --reload
 ```
 
-Frontend:
+---
 
-```bash
+## 5. Start Frontend
+
+```bash id="f5k9pb"
 cd frontend
+
 npm install
 npm run dev
 ```
 
-Open `http://127.0.0.1:1420`.
+---
 
-Tauri shell, after frontend dependencies are installed:
+# Project Structure
 
-```bash
-cd tauri
-npm install
-npm run dev
+```text id="u8r3mx"
+lllmao/
+├── frontend/
+├── backend/
+├── database/
+├── docs/
+├── screenshots/
+├── tauri/
+├── README.md
+└── LICENSE
 ```
 
-## API
+---
 
-- `GET /health`: verifies local Ollama availability
-- `GET /stats`: returns lightweight local CPU/RAM/GPU/Ollama/database telemetry
-- `GET /models`: returns installed Ollama models
-- `GET /chats`: returns saved chats
-- `POST /chats`: creates a chat
-- `PATCH /chats/{chat_id}`: renames a chat
-- `DELETE /chats/{chat_id}`: deletes a chat
-- `GET /messages/{chat_id}`: returns messages for a chat
-- `POST /chat`: streams a response from the selected local model
+# Current Development Status
 
-## Phase 2 Monitoring
+Implemented:
 
-The live dashboard polls lightweight local telemetry only. GPU metrics degrade safely:
+* conversational chat
+* streaming responses
+* RAG foundation
+* workspace indexing
+* multimodal workflows
+* semantic retrieval
+* system monitoring
 
-- NVIDIA: optional `pynvml`
-- AMD: optional `rocm-smi` JSON output when available
-- CPU-only: dashboard remains usable with GPU metrics marked unavailable
+In progress:
 
-## License
+* advanced memory systems
+* IDE integrations
+* packaging/distribution
+* production hardening
 
-This project is licensed under the PolyForm Strict License 1.0.0. See [LICENSE](LICENSE).
+---
+
+# Roadmap
+
+## Planned Features
+
+* VS Code integration
+* advanced retrieval memory
+* Linux packaging
+* Snap Store distribution
+* plugin architecture
+* retrieval inspection tools
+* advanced prompt orchestration
+
+---
+
+# License
+
+This project is licensed under the PolyForm Project Strict License 1.0.0.
+
+Commercial use, redistribution, and derivative works are prohibited without explicit permission from the author.
+
+See the `LICENSE` file for full details.
+
+---
+
+# Important Notes
+
+LLLMao:
+
+* does not distribute AI models
+* does not perform remote inference
+* does not include telemetry
+* does not require cloud services
+
+Users are responsible for installing and managing their own local Ollama models.
+
+---
+
+# Vision
+
+LLLMao aims to become a professional local AI workspace optimized for:
+
+* developers
+* robotics engineers
+* ROS2 workflows
+* Isaac Sim workflows
+* privacy-focused AI usage
+* offline development environments
+
+with a strong focus on:
+
+* local inference
+* semantic retrieval
+* workspace awareness
+* multimodal interaction
+* Linux-native performance.
