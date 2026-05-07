@@ -49,15 +49,18 @@ class ChromaVectorStore:
             logger.exception("vectorstore_upsert_failed", extra={"record_count": len(ids)})
             raise VectorStoreUnavailableError("Vector database unavailable.") from exc
 
-    def query(self, embedding: list[float], limit: int = 5) -> list[dict[str, Any]]:
+    def query(self, embedding: list[float], limit: int = 5, where: dict[str, Any] | None = None) -> list[dict[str, Any]]:
         try:
-            result = self.collection.query(
-                query_embeddings=[embedding],
-                n_results=limit,
-                include=["documents", "metadatas", "distances"],
-            )
+            kwargs: dict[str, Any] = {
+                "query_embeddings": [embedding],
+                "n_results": limit,
+                "include": ["documents", "metadatas", "distances"],
+            }
+            if where:
+                kwargs["where"] = where
+            result = self.collection.query(**kwargs)
         except Exception as exc:  # noqa: BLE001
-            logger.exception("vectorstore_query_failed", extra={"limit": limit})
+            logger.exception("vectorstore_query_failed", extra={"limit": limit, "where": str(where)})
             raise VectorStoreUnavailableError("Vector database unavailable.") from exc
         documents = result.get("documents", [[]])[0]
         metadatas = result.get("metadatas", [[]])[0]
