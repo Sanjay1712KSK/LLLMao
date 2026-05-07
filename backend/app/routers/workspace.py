@@ -5,7 +5,7 @@ import logging
 import uuid
 from pathlib import Path
 
-from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, status
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Response, status
 from fastapi.responses import StreamingResponse
 from sqlalchemy import select
 from sqlalchemy.orm import Session
@@ -74,8 +74,8 @@ def list_workspaces(db: Session = Depends(get_db)) -> list[WorkspaceRead]:
     return [_workspace_read(workspace) for workspace in workspaces]
 
 
-@router.delete("/workspaces/{workspace_id}", status_code=status.HTTP_204_NO_CONTENT)
-def disconnect_workspace(workspace_id: str, db: Session = Depends(get_db)) -> None:
+@router.delete("/workspaces/{workspace_id}", status_code=status.HTTP_204_NO_CONTENT, response_class=Response)
+def disconnect_workspace(workspace_id: str, db: Session = Depends(get_db)) -> Response:
     workspace = db.get(Workspace, workspace_id)
     if workspace is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Workspace not found")
@@ -87,6 +87,7 @@ def disconnect_workspace(workspace_id: str, db: Session = Depends(get_db)) -> No
         pass
     db.delete(workspace)
     db.commit()
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 
 @router.post("/workspace/{workspace_id}/reindex", response_model=WorkspaceRead)

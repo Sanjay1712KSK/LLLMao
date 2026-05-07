@@ -5,7 +5,7 @@ import logging
 import uuid
 from pathlib import Path
 
-from fastapi import APIRouter, BackgroundTasks, Depends, File, HTTPException, UploadFile, status
+from fastapi import APIRouter, BackgroundTasks, Depends, File, HTTPException, Response, UploadFile, status
 from fastapi.responses import JSONResponse, StreamingResponse
 from sqlalchemy import select
 from sqlalchemy.orm import Session
@@ -110,8 +110,8 @@ def list_documents(db: Session = Depends(get_db)) -> list[DocumentRead]:
     return [_document_read(document) for document in documents]
 
 
-@router.delete("/documents/{document_id}", status_code=status.HTTP_204_NO_CONTENT)
-def delete_document(document_id: str, db: Session = Depends(get_db)) -> None:
+@router.delete("/documents/{document_id}", status_code=status.HTTP_204_NO_CONTENT, response_class=Response)
+def delete_document(document_id: str, db: Session = Depends(get_db)) -> Response:
     document = db.get(Document, document_id)
     if document is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Document not found")
@@ -125,6 +125,7 @@ def delete_document(document_id: str, db: Session = Depends(get_db)) -> None:
     db.commit()
     if storage_path.exists():
         storage_path.unlink()
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 
 @router.post("/documents/{document_id}/reindex", response_model=DocumentRead)

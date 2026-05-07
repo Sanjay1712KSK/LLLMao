@@ -1,4 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import Response
 from fastapi.responses import StreamingResponse
 from sqlalchemy.orm import Session
 
@@ -28,10 +29,11 @@ def patch_chat(chat_id: int, payload: ChatUpdate, db: Session = Depends(get_db))
     return ChatRead.model_validate(chat)
 
 
-@router.delete("/chats/{chat_id}", status_code=status.HTTP_204_NO_CONTENT)
-def remove_chat(chat_id: int, db: Session = Depends(get_db)) -> None:
+@router.delete("/chats/{chat_id}", status_code=status.HTTP_204_NO_CONTENT, response_class=Response)
+def remove_chat(chat_id: int, db: Session = Depends(get_db)) -> Response:
     if not chat_service.delete_chat(db, chat_id):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Chat not found")
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 
 @router.get("/messages/{chat_id}", response_model=list[MessageRead])
