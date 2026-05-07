@@ -1,0 +1,546 @@
+
+You are implementing a critical workspace-context recovery sprint together with Phase 8 runtime orchestration for LLLMao.
+
+PROJECT NAME:
+LLLMao
+(Local Lightweight Language Model Assistant Orchestrator)
+
+IMPORTANT:
+DO NOT rewrite working systems.
+DO NOT rewrite frontend layout.
+DO NOT remove existing features.
+
+The following currently work:
+- local chat
+- Ollama model connection
+- streaming responses
+- chat history
+- workspace connection UI
+- directory indexing partially
+- developer tools
+- monitoring dashboard
+
+The following CRITICAL issue exists:
+- workspace directories connect successfully
+- indexing partially succeeds
+- BUT the model does NOT actually use workspace context correctly during chat
+
+This is the PRIMARY issue to solve first.
+
+--------------------------------------------------
+CRITICAL CURRENT ISSUE
+--------------------------------------------------
+
+The user enables:
+"Use Workspace"
+
+but the model behaves like generic chat and ignores indexed workspace content.
+
+Example:
+User asks:
+- explain the file
+- use the workspace
+- explain this project
+
+Instead of:
+- retrieving indexed chunks
+- using semantic context
+- understanding files
+
+the model produces generic unrelated answers.
+
+This means:
+- retrieval pipeline is broken
+OR
+- context injection pipeline is broken
+OR
+- workspace retrieval orchestration is not connected to chat prompts
+
+--------------------------------------------------
+PRIMARY GOAL
+--------------------------------------------------
+
+Fix the COMPLETE workspace-aware contextual retrieval pipeline.
+
+The assistant must ACTUALLY:
+- retrieve indexed workspace chunks
+- inject relevant context
+- understand project files
+- answer using indexed workspace knowledge
+
+The model must stop behaving like generic chat when workspace mode is enabled.
+
+--------------------------------------------------
+VERY IMPORTANT REQUIREMENT
+--------------------------------------------------
+
+Workspace mode MUST behave differently from normal chat.
+
+When:
+"Use Workspace" enabled
+
+The pipeline MUST:
+1. search indexed workspace chunks
+2. rerank relevant chunks
+3. inject semantic context
+4. include source metadata
+5. assemble optimized contextual prompts
+6. generate workspace-aware answers
+
+--------------------------------------------------
+ROOT CAUSE ANALYSIS REQUIREMENTS
+--------------------------------------------------
+
+Perform a complete audit of:
+- workspace retrieval pipeline
+- semantic retrieval logic
+- vector DB retrieval
+- chunk metadata
+- prompt orchestration
+- workspace mode frontend hooks
+- backend contextual assembly
+- retrieval-to-prompt injection flow
+
+The likely problems include:
+- retrieval results not injected into prompts
+- retrieval returning empty chunks
+- broken vector DB query
+- workspace mode flag ignored
+- orchestration layer disconnected
+- semantic search not linked to chat endpoint
+- retrieval pipeline crashing silently
+
+--------------------------------------------------
+WORKSPACE CHAT PIPELINE REQUIREMENTS
+--------------------------------------------------
+
+Implement a REAL workspace-aware orchestration pipeline.
+
+Required architecture:
+
+User Query
+    ↓
+Workspace Enabled?
+    ↓
+Semantic Retrieval
+    ↓
+Reranking
+    ↓
+Chunk Deduplication
+    ↓
+Context Assembly
+    ↓
+Prompt Construction
+    ↓
+Ollama Chat Request
+    ↓
+Workspace-Aware Response
+
+--------------------------------------------------
+WORKSPACE RETRIEVAL REQUIREMENTS
+--------------------------------------------------
+
+The assistant MUST:
+- retrieve relevant files
+- retrieve relevant code chunks
+- retrieve relevant symbols
+- retrieve semantic matches
+- retrieve project-specific context
+
+Example:
+If workspace contains:
+README.md
+package.json
+server/index.js
+
+and user asks:
+"Explain this project"
+
+The system should:
+- retrieve README
+- retrieve package metadata
+- retrieve architecture-related chunks
+- inject them into prompt
+
+--------------------------------------------------
+SEMANTIC CHUNKING REQUIREMENTS
+--------------------------------------------------
+
+Ensure workspace chunking is meaningful.
+
+DO NOT:
+- split arbitrarily by characters
+
+Chunk by:
+- functions
+- classes
+- sections
+- configs
+- markdown sections
+- modules
+
+Store metadata:
+- file path
+- symbol names
+- language
+- line ranges
+
+--------------------------------------------------
+PROMPT ORCHESTRATION REQUIREMENTS
+--------------------------------------------------
+
+Implement intelligent workspace prompt assembly.
+
+Prompt should include:
+- retrieved workspace chunks
+- relevant file metadata
+- workspace instructions
+- concise context summaries
+
+Avoid:
+- dumping huge raw files
+- duplicate chunks
+- irrelevant retrieval
+
+--------------------------------------------------
+SOURCE ATTRIBUTION REQUIREMENTS
+--------------------------------------------------
+
+The assistant should reference:
+- retrieved files
+- retrieved symbols
+- retrieved modules
+
+Example:
+"Based on README.md and server/index.js..."
+
+This dramatically improves UX.
+
+--------------------------------------------------
+WORKSPACE SEARCH REQUIREMENTS
+--------------------------------------------------
+
+Fix semantic workspace search.
+
+Current issue:
+search UI may work visually but retrieval quality is poor.
+
+Implement:
+- semantic similarity search
+- keyword fallback
+- metadata-aware retrieval
+- reranking
+
+--------------------------------------------------
+VECTOR DATABASE REQUIREMENTS
+--------------------------------------------------
+
+Audit ChromaDB collections.
+
+Ensure:
+- chunks are actually inserted
+- embeddings exist
+- retrieval returns results
+- metadata stored correctly
+- workspace IDs mapped correctly
+
+Collections:
+- workspace_chunks
+- documents
+- semantic_memory
+
+--------------------------------------------------
+CHAT ENDPOINT REQUIREMENTS
+--------------------------------------------------
+
+Fix backend chat orchestration.
+
+Workspace-enabled chat MUST:
+- call retrieval pipeline
+- inject retrieved chunks
+- preserve conversation context
+- preserve memory context
+- preserve workspace metadata
+
+--------------------------------------------------
+DEBUGGING REQUIREMENTS
+--------------------------------------------------
+
+Add retrieval debugging tools.
+
+Display:
+- retrieved chunks
+- retrieval scores
+- retrieved files
+- injected prompt context
+- token counts
+
+This is VERY important.
+
+--------------------------------------------------
+FRONTEND REQUIREMENTS
+--------------------------------------------------
+
+Improve:
+- workspace context indicator
+- retrieval source display
+- contextual citations
+- retrieval debug panel
+- workspace activity indicators
+
+When workspace mode active:
+frontend should clearly show:
+- retrieved sources
+- active context
+- semantic matches
+
+--------------------------------------------------
+PHASE 8 GOAL
+--------------------------------------------------
+
+After fixing workspace intelligence,
+implement Phase 8 runtime orchestration.
+
+This phase transforms LLLMao into:
+- an adaptive AI workstation runtime platform
+
+focused on:
+- coexistence
+- runtime optimization
+- scalability
+- GPU-aware orchestration
+
+--------------------------------------------------
+PHASE 8 CORE FEATURES
+--------------------------------------------------
+
+1. Hardware profile manager
+2. VRAM-aware orchestration
+3. GPU capability detection
+4. Mobile vs desktop GPU optimization
+5. Isaac Sim coexistence mode
+6. Runtime performance presets
+7. Adaptive background scheduling
+8. Retrieval caching
+9. Embedding cache
+10. Async worker orchestration
+11. Incremental indexing
+12. Large workspace optimization
+13. Streaming optimization
+14. Runtime telemetry engine
+15. Resource-aware workload balancing
+
+--------------------------------------------------
+GPU PROFILE REQUIREMENTS
+--------------------------------------------------
+
+Support NVIDIA runtime presets for:
+- RTX 2050
+- RTX 2060
+- RTX 2070
+- RTX 2080
+- RTX 2090
+- RTX 3050
+- RTX 3060
+- RTX 3070
+- RTX 3080
+- RTX 3090
+- RTX 4050
+- RTX 4060
+- RTX 4070
+- RTX 4080
+- RTX 4090
+- RTX 5050
+- RTX 5060
+- RTX 5070
+- RTX 5080
+- RTX 5090
+
+INCLUDING:
+- Ti variants
+- Super variants
+- Laptop/mobile variants
+
+--------------------------------------------------
+IMPORTANT ARCHITECTURE RULE
+--------------------------------------------------
+
+DO NOT hardcode individual GPU logic.
+
+Instead:
+Map hardware into capability tiers using:
+- VRAM
+- desktop/mobile
+- workload class
+- coexistence mode
+
+--------------------------------------------------
+VRAM PROFILE REQUIREMENTS
+--------------------------------------------------
+
+Support:
+- 4GB
+- 6GB
+- 8GB
+- 10GB
+- 12GB
+- 16GB
+- 24GB
+- 32GB
+- 64GB+
+
+Dynamically tune:
+- retrieval concurrency
+- embedding workers
+- indexing workers
+- cache sizes
+- multimodal aggressiveness
+
+--------------------------------------------------
+ISAAC SIM COEXISTENCE MODE
+--------------------------------------------------
+
+Implement:
+"Isaac Sim Coexistence Mode"
+
+When enabled:
+- reduce indexing concurrency
+- preserve VRAM headroom
+- throttle embeddings
+- reduce cache pressure
+- reduce polling frequency
+
+Goal:
+Allow:
+- Isaac Sim
+- Ollama
+- indexing
+- RAG
+
+to coexist smoothly.
+
+--------------------------------------------------
+MOBILE GPU REQUIREMENTS
+--------------------------------------------------
+
+Laptop/mobile GPUs must use:
+- conservative scheduling
+- reduced concurrency
+- thermal-aware orchestration
+
+Example:
+RTX 4070 Laptop != RTX 4070 Desktop
+
+--------------------------------------------------
+DEFAULT UNIVERSAL MODE
+--------------------------------------------------
+
+Implement:
+"Universal Default Mode"
+
+Works on:
+- NVIDIA
+- AMD
+- Intel
+- CPU-only systems
+
+AMD GPUs should initially use:
+- universal mode
+
+Future AMD optimization preparation should exist.
+
+--------------------------------------------------
+RETRIEVAL OPTIMIZATION REQUIREMENTS
+--------------------------------------------------
+
+Implement:
+- retrieval caching
+- semantic query caching
+- embedding reuse
+- batched vector queries
+- retrieval deduplication
+
+--------------------------------------------------
+INDEXING OPTIMIZATION REQUIREMENTS
+--------------------------------------------------
+
+Implement:
+- incremental indexing
+- file-diff indexing
+- lazy indexing
+- worker prioritization
+
+Avoid:
+- full reindexing unnecessarily
+
+--------------------------------------------------
+ASYNC WORKER REQUIREMENTS
+--------------------------------------------------
+
+Implement:
+- worker supervision
+- retry handling
+- adaptive throttling
+- graceful cancellation
+- background scheduling
+
+--------------------------------------------------
+FRONTEND RUNTIME REQUIREMENTS
+--------------------------------------------------
+
+Add:
+- runtime profile selector
+- coexistence mode selector
+- worker monitor
+- cache monitor
+- telemetry dashboard
+- retrieval debug panel
+
+--------------------------------------------------
+PERFORMANCE REQUIREMENTS
+--------------------------------------------------
+
+LLLMao must remain responsive while:
+- Isaac Sim runs
+- ROS2 runs
+- indexing occurs
+- retrieval occurs
+- local inference occurs
+
+--------------------------------------------------
+TAURI REQUIREMENTS
+--------------------------------------------------
+
+Maintain:
+- Tauri compatibility
+- Linux-native architecture
+- .deb readiness
+- Snap readiness
+
+--------------------------------------------------
+EXPECTED OUTPUT
+--------------------------------------------------
+
+Provide:
+1. fixed workspace retrieval pipeline
+2. fixed context injection pipeline
+3. semantic workspace orchestration
+4. retrieval debugging tools
+5. source attribution system
+6. prompt orchestration fixes
+7. retrieval reranking improvements
+8. runtime orchestration engine
+9. VRAM-aware scheduling
+10. coexistence mode implementation
+11. hardware profile system
+12. async worker optimization
+13. runtime telemetry implementation
+14. frontend runtime controls
+15. testing instructions
+16. production hardening notes
+
+IMPORTANT:
+The MOST important fix is:
+workspace-aware retrieval MUST actually influence model responses professionally.
+
+The assistant must stop behaving like generic chat when workspace mode is enabled.
