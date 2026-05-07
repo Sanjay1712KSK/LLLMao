@@ -1,6 +1,11 @@
 export type OllamaHealth = {
   ok: boolean;
   message: string;
+  backend?: string;
+  ollama?: boolean;
+  chromadb?: boolean;
+  pillow?: boolean;
+  database?: boolean;
   backend_ok: boolean;
   ollama_ok: boolean;
   database_ok: boolean;
@@ -152,4 +157,52 @@ export type SystemStats = {
   backend_ok: boolean;
   ollama_ok: boolean;
   database_ok: boolean;
+};
+
+export type MemoryStatus = {
+  enabled: boolean;
+  chromadb: boolean;
+  entries: number;
+  summaries: number;
+  collections: string[];
+};
+
+export type MemoryEntry = {
+  id: string;
+  collection: string;
+  scope: string;
+  chat_id?: number | null;
+  workspace_id?: string | null;
+  title: string;
+  summary: string;
+  importance: number;
+  score?: number | null;
+  created_at: string;
+};
+
+export type ConversationSummary = {
+  id?: string | null;
+  chat_id: number;
+  summary: string;
+  message_count: number;
+  token_estimate: number;
+};
+
+export type ContextDebug = {
+  id: string;
+  chat_id?: number | null;
+  mode: string;
+  query: string;
+  token_budget: number;
+  token_estimate: number;
+  composition: {
+    memory_count?: number;
+    document_count?: number;
+    workspace_count?: number;
+    selected_count?: number;
+    candidate_count?: number;
+    history_count?: number;
+    sources?: Array<{ source_type?: string; source_id?: string; title?: string; score?: number; token_estimate?: number }>;
+  };
+  created_at: string;
 };

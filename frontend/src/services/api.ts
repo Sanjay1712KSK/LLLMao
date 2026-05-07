@@ -3,6 +3,10 @@ import type {
   ImageAsset,
   KnowledgeChunk,
   KnowledgeDocument,
+  ContextDebug,
+  ConversationSummary,
+  MemoryEntry,
+  MemoryStatus,
   Message,
   OllamaHealth,
   OllamaModel,
@@ -142,6 +146,15 @@ export const api = {
     }),
   imageThumbnailUrl: (imageId: string) => `${API_BASE_URL}/images/${imageId}/thumbnail`,
   retrievalDebug: (chatId?: number | null) => jsonRequest<RetrievalDebug[]>(`/retrieval/debug${chatId ? `?chat_id=${chatId}` : ''}`),
+  memoryStatus: () => jsonRequest<MemoryStatus>('/memory/status'),
+  summarizeMemory: (chatId: number, workspaceId?: string | null) =>
+    jsonRequest<ConversationSummary>('/memory/summarize', {
+      method: 'POST',
+      body: JSON.stringify({ chat_id: chatId, persist: true, scope: workspaceId ? 'workspace' : 'conversation', workspace_id: workspaceId ?? null }),
+    }),
+  retrieveMemory: (query: string, workspaceId?: string | null) =>
+    jsonRequest<MemoryEntry[]>(`/memory/retrieve?query=${encodeURIComponent(query)}${workspaceId ? `&workspace_id=${encodeURIComponent(workspaceId)}` : ''}`),
+  contextDebug: (chatId?: number | null) => jsonRequest<ContextDebug[]>(`/context/debug${chatId ? `?chat_id=${chatId}` : ''}`),
   streamChat: async (
     payload: { chat_id: number; model: string; message: string },
     onChunk: (chunk: string) => void,
@@ -289,6 +302,56 @@ export const api = {
         .join('\n');
       if (!event || !data) return;
       if (event === 'sources') onSources(JSON.parse(data) as WorkspaceSource[]);
+      if (event === 'token') onChunk(JSON.parse(data) as string);
+    };
+    try {
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        buffer += decoder.decode(value, { stream: true });
+        const events = buffer.split('\n\n');
+        buffer = events.pop() ?? '';
+        events.forEach(dispatchEvent);
+      }
+    } finally {
+      reader.releaseLock();
+    }
+    if (buffer.trim()) dispatchEvent(buffer);
+  },
+  streamIntelligentChat: async (
+    payload: {
+      chat_id: number;
+      model: string;
+      message: string;
+      workspace_id?: string | null;
+      use_workspace: boolean;
+      use_documents: boolean;
+    },
+    onChunk: (chunk: string) => void,
+    onContext: (context: ContextDebug['composition']) => void,
+    signal?: AbortSignal,
+  ) => {
+    const response = await fetch(`${API_BASE_URL}/chat/intelligent`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+      signal,
+    });
+    if (!response.ok || !response.body) {
+      throw await responseError(response);
+    }
+    const reader = response.body.getReader();
+    const decoder = new TextDecoder();
+    let buffer = '';
+    const dispatchEvent = (raw: string) => {
+      const lines = raw.split('\n');
+      const event = lines.find((line) => line.startsWith('event:'))?.slice(6).trim();
+      const data = lines
+        .filter((line) => line.startsWith('data:'))
+        .map((line) => line.slice(5).trim())
+        .join('\n');
+      if (!event || !data) return;
+      if (event === 'context') onContext(JSON.parse(data) as ContextDebug['composition']);
       if (event === 'token') onChunk(JSON.parse(data) as string);
     };
     try {
