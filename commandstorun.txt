@@ -2,5 +2,5 @@ cd /run/media/sanjaykumars/samsungssd/MyOwnRTXChat/backend
 source .venv/bin/activate
 uvicorn app.main:app --reload --host 127.0.0.1 --port 8000
 
-cd /run/media/sanjaykumars/samsungssd/MyOwnRTXChat/frontend
+cd /run/media/sanjaykumas/samsungssd/MyOwnRTXChat/frontend
 npm run dev

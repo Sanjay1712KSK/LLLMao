@@ -21,3 +21,4 @@ frontend/src-tauri/target/
 tauri/target/
 screenshots/*
 !screenshots/.gitkeep
+.aider*
