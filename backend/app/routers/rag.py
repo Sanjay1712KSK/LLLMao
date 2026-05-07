@@ -67,7 +67,7 @@ async def upload_document(
     try:
         size = 0
         with storage_path.open("wb") as handle:
-            while chunk := await file.read(1024 * 1024):
+            while chunk := file.file.read(1024 * 1024):
                 size += len(chunk)
                 if size > MAX_UPLOAD_BYTES:
                     storage_path.unlink(missing_ok=True)
@@ -87,7 +87,7 @@ async def upload_document(
             status.HTTP_500_INTERNAL_SERVER_ERROR,
         )
     finally:
-        await file.close()
+        file.file.close()
 
     document = Document(
         id=document_id,

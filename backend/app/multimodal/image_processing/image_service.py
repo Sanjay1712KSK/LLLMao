@@ -28,7 +28,7 @@ class ImageService:
         size = 0
         try:
             with staging.open("wb") as handle:
-                while chunk := await file.read(1024 * 1024):
+                while chunk := file.file.read(1024 * 1024):
                     size += len(chunk)
                     if size > self.max_upload_bytes:
                         raise UnsupportedImageError("Image is too large. Use an image under 16 MB.")
@@ -40,4 +40,4 @@ class ImageService:
             logger.exception("image_file_write_failed", extra={"filename": file.filename})
             raise UnsupportedImageError("Image upload could not be saved.") from exc
         finally:
-            await file.close()
+            file.file.close()
