@@ -1,7 +1,7 @@
 import logging
 
 from app.database.session import Base, engine
-from app.models import chat, multimodal, rag, workspace
+from app.models import chat, memory, multimodal, rag, workspace
 from sqlalchemy import inspect, text
 
 logger = logging.getLogger("lllmao.database")
@@ -9,6 +9,7 @@ logger = logging.getLogger("lllmao.database")
 
 def init_db() -> None:
     _ = chat
+    _ = memory
     _ = multimodal
     _ = rag
     _ = workspace
