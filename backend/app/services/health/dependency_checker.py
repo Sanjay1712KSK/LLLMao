@@ -11,10 +11,11 @@ from sqlalchemy import text
 from sqlalchemy.orm import Session
 
 from app.config import get_settings
+from app.rag.vectorstore import chroma_client_manager
 
 logger = logging.getLogger("lllmao.dependencies")
 
-DependencyName = Literal["pillow", "chromadb", "ollama", "sqlite"]
+DependencyName = Literal["chromadb", "pillow", "pypdf", "python-docx", "watchdog", "ollama", "sqlite"]
 
 
 @dataclass(slots=True)
@@ -32,8 +33,21 @@ class DependencyChecker:
 
     async def startup_check(self) -> dict[DependencyName, DependencyStatus]:
         statuses = {
-            "pillow": self.check_pillow(),
             "chromadb": self.check_chromadb(),
+            "pillow": self.check_import("pillow", "PIL", "Image processing backend unavailable.", "Install Pillow in backend requirements."),
+            "pypdf": self.check_import("pypdf", "pypdf", "PDF parser unavailable.", "Install pypdf in backend requirements."),
+            "python-docx": self.check_import(
+                "python-docx",
+                "docx",
+                "DOCX parser unavailable.",
+                "Install python-docx in backend requirements.",
+            ),
+            "watchdog": self.check_import(
+                "watchdog",
+                "watchdog",
+                "Workspace file watcher unavailable.",
+                "Install watchdog in backend requirements.",
+            ),
             "sqlite": self.check_sqlite_import(),
             "ollama": await self.check_ollama(),
         }
@@ -54,25 +68,29 @@ class DependencyChecker:
     def cached(self, name: DependencyName) -> DependencyStatus | None:
         return self._startup_status.get(name)
 
-    def check_pillow(self) -> DependencyStatus:
-        if importlib.util.find_spec("PIL") is None:
+    def check_import(self, name: DependencyName, module: str, message: str, details: str) -> DependencyStatus:
+        if importlib.util.find_spec(module) is None:
             return DependencyStatus(
-                name="pillow",
+                name=name,
                 ok=False,
-                message="Image processing backend unavailable.",
-                details="Install Pillow in backend requirements.",
+                message=message,
+                details=details,
             )
-        return DependencyStatus(name="pillow", ok=True, message="Pillow is available.")
+        return DependencyStatus(name=name, ok=True, message=f"{name} is available.")
 
     def check_chromadb(self) -> DependencyStatus:
-        if importlib.util.find_spec("chromadb") is None:
+        ok, details = chroma_client_manager.validate()
+        if not ok:
             return DependencyStatus(
                 name="chromadb",
                 ok=False,
                 message="Vector retrieval backend unavailable.",
-                details="Install ChromaDB in backend requirements.",
+                details=details or "ChromaDB dependency missing or failed to initialize.",
             )
-        return DependencyStatus(name="chromadb", ok=True, message="ChromaDB is available.")
+        return DependencyStatus(name="chromadb", ok=True, message="ChromaDB is initialized.")
+
+    def check_pillow(self) -> DependencyStatus:
+        return self.check_import("pillow", "PIL", "Image processing backend unavailable.", "Install Pillow in backend requirements.")
 
     def check_sqlite_import(self) -> DependencyStatus:
         try:

@@ -1,10 +1,16 @@
 from __future__ import annotations
 
-from pathlib import Path
+import logging
 from typing import Any
 
-from app.config import get_settings
 from app.rag.types import RagChunk
+from app.rag.vectorstore.chroma_client import (
+    DOCUMENTS_COLLECTION,
+    ChromaUnavailableError,
+    chroma_client_manager,
+)
+
+logger = logging.getLogger("lllmao.vectorstore")
 
 
 class VectorStoreUnavailableError(RuntimeError):
@@ -12,17 +18,11 @@ class VectorStoreUnavailableError(RuntimeError):
 
 
 class ChromaVectorStore:
-    def __init__(self, collection_name: str = "lllmao_knowledge") -> None:
+    def __init__(self, collection_name: str = DOCUMENTS_COLLECTION) -> None:
         try:
-            import chromadb
-        except ImportError as exc:
-            raise VectorStoreUnavailableError("ChromaDB is not installed. Install backend requirements.") from exc
-
-        settings = get_settings()
-        persist_path = Path(settings.chroma_path)
-        persist_path.mkdir(parents=True, exist_ok=True)
-        self.client = chromadb.PersistentClient(path=str(persist_path))
-        self.collection = self.client.get_or_create_collection(name=collection_name, metadata={"hnsw:space": "cosine"})
+            self.collection = chroma_client_manager.collection(collection_name)
+        except ChromaUnavailableError as exc:
+            raise VectorStoreUnavailableError("Vector database unavailable.") from exc
 
     def upsert_chunks(self, chunks: list[RagChunk], embeddings: list[list[float]]) -> None:
         if not chunks:
@@ -43,14 +43,22 @@ class ChromaVectorStore:
     ) -> None:
         if not ids:
             return
-        self.collection.upsert(ids=ids, documents=documents, embeddings=embeddings, metadatas=metadatas)
+        try:
+            self.collection.upsert(ids=ids, documents=documents, embeddings=embeddings, metadatas=metadatas)
+        except Exception as exc:  # noqa: BLE001
+            logger.exception("vectorstore_upsert_failed", extra={"record_count": len(ids)})
+            raise VectorStoreUnavailableError("Vector database unavailable.") from exc
 
     def query(self, embedding: list[float], limit: int = 5) -> list[dict[str, Any]]:
-        result = self.collection.query(
-            query_embeddings=[embedding],
-            n_results=limit,
-            include=["documents", "metadatas", "distances"],
-        )
+        try:
+            result = self.collection.query(
+                query_embeddings=[embedding],
+                n_results=limit,
+                include=["documents", "metadatas", "distances"],
+            )
+        except Exception as exc:  # noqa: BLE001
+            logger.exception("vectorstore_query_failed", extra={"limit": limit})
+            raise VectorStoreUnavailableError("Vector database unavailable.") from exc
         documents = result.get("documents", [[]])[0]
         metadatas = result.get("metadatas", [[]])[0]
         distances = result.get("distances", [[]])[0]
@@ -68,13 +76,20 @@ class ChromaVectorStore:
         return rows
 
     def delete_document(self, document_id: str) -> None:
-        self.collection.delete(where={"document_id": document_id})
+        self._delete(where={"document_id": document_id})
 
     def delete_workspace(self, workspace_id: str) -> None:
-        self.collection.delete(where={"workspace_id": workspace_id})
+        self._delete(where={"workspace_id": workspace_id})
 
     def delete_file(self, workspace_id: str, file_path: str) -> None:
-        self.collection.delete(where={"$and": [{"workspace_id": workspace_id}, {"file_path": file_path}]})
+        self._delete(where={"$and": [{"workspace_id": workspace_id}, {"file_path": file_path}]})
+
+    def _delete(self, where: dict[str, Any]) -> None:
+        try:
+            self.collection.delete(where=where)
+        except Exception as exc:  # noqa: BLE001
+            logger.exception("vectorstore_delete_failed", extra={"where": str(where)})
+            raise VectorStoreUnavailableError("Vector database unavailable.") from exc
 
     def _metadata(self, chunk: RagChunk) -> dict[str, str | int | float | bool | None]:
         return {

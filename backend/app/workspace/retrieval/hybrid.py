@@ -11,7 +11,7 @@ from sqlalchemy.orm import Session
 from app.models import CodeSymbol
 from app.rag.chunking import estimate_tokens
 from app.rag.embeddings import OllamaEmbeddingService
-from app.rag.vectorstore import ChromaVectorStore, VectorStoreUnavailableError
+from app.rag.vectorstore import ChromaVectorStore, VectorStoreUnavailableError, WORKSPACE_COLLECTION
 from app.services.ollama_service import OllamaUnavailableError
 
 logger = logging.getLogger("lllmao.workspace_retrieval")
@@ -61,7 +61,7 @@ class WorkspaceRetrievalPipeline:
     async def _semantic(self, workspace_id: str, query: str, limit: int) -> list[RetrievedCodeChunk]:
         try:
             embedding = await OllamaEmbeddingService(model=self.embedding_model).embed(query)
-            rows = ChromaVectorStore(collection_name="lllmao_workspace").query(embedding, limit=limit)
+            rows = ChromaVectorStore(collection_name=WORKSPACE_COLLECTION).query(embedding, limit=limit)
         except (VectorStoreUnavailableError, OllamaUnavailableError):
             logger.warning("workspace_semantic_retrieval_unavailable", extra={"workspace_id": workspace_id})
             return []

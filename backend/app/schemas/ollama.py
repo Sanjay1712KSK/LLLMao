@@ -14,6 +14,11 @@ class ModelRead(BaseModel):
 class HealthRead(BaseModel):
     ok: bool
     message: str
+    backend: str = "healthy"
+    ollama: bool = False
+    chromadb: bool = False
+    pillow: bool = False
+    database: bool = False
     backend_ok: bool = True
     ollama_ok: bool
     database_ok: bool

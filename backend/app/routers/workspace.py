@@ -13,7 +13,7 @@ from sqlalchemy.orm import Session
 from app.config import get_settings
 from app.database import get_db
 from app.models import IndexedFile, Workspace
-from app.rag.vectorstore import ChromaVectorStore, VectorStoreUnavailableError
+from app.rag.vectorstore import ChromaVectorStore, VectorStoreUnavailableError, WORKSPACE_COLLECTION
 from app.schemas import IndexedFileRead, WorkspaceChatRequest, WorkspaceConnectRequest, WorkspaceRead
 from app.services import chat_service
 from app.services.ollama_service import OllamaService, OllamaUnavailableError
@@ -82,7 +82,7 @@ def disconnect_workspace(workspace_id: str, db: Session = Depends(get_db)) -> No
     workspace_cancellations.add(workspace_id)
     workspace_watcher.stop(workspace_id)
     try:
-        ChromaVectorStore(collection_name="lllmao_workspace").delete_workspace(workspace_id)
+        ChromaVectorStore(collection_name=WORKSPACE_COLLECTION).delete_workspace(workspace_id)
     except VectorStoreUnavailableError:
         pass
     db.delete(workspace)

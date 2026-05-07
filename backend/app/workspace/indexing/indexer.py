@@ -10,7 +10,7 @@ from sqlalchemy import delete, select
 from app.database.session import SessionLocal
 from app.models import CodeSymbol, IndexedFile, Workspace
 from app.rag.embeddings import OllamaEmbeddingService
-from app.rag.vectorstore import ChromaVectorStore, VectorStoreUnavailableError
+from app.rag.vectorstore import ChromaVectorStore, VectorStoreUnavailableError, WORKSPACE_COLLECTION
 from app.workspace.parsers import CodeParser, language_for_path
 from app.workspace.types import CodeChunk
 
@@ -54,7 +54,7 @@ class WorkspaceIndexer:
             total_symbols = 0
 
             try:
-                vectorstore = ChromaVectorStore(collection_name="lllmao_workspace")
+                vectorstore = ChromaVectorStore(collection_name=WORKSPACE_COLLECTION)
                 vectorstore.delete_workspace(workspace_id)
                 vector_error = None
             except VectorStoreUnavailableError as exc:

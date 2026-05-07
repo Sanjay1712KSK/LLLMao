@@ -7,7 +7,7 @@ import uuid
 from pathlib import Path
 
 from fastapi import APIRouter, BackgroundTasks, Depends, File, HTTPException, UploadFile, status
-from fastapi.responses import StreamingResponse
+from fastapi.responses import JSONResponse, StreamingResponse
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
@@ -17,9 +17,10 @@ from app.models import Document, DocumentChunk
 from app.rag.indexing import DocumentIndexer, indexing_cancellations, indexing_progress
 from app.rag.parsers import DocumentParser
 from app.rag.retrieval.pipeline import RagRetrievalPipeline, build_contextual_messages
-from app.rag.vectorstore import ChromaVectorStore, VectorStoreUnavailableError
+from app.rag.vectorstore import ChromaVectorStore, VectorStoreUnavailableError, chroma_client_manager
 from app.schemas import DocumentChunkRead, DocumentRead, RagChatRequest
 from app.services import chat_service
+from app.services.errors import chromadb_unavailable, structured_error
 from app.services.ollama_service import OllamaService, OllamaUnavailableError
 
 router = APIRouter(tags=["rag"])
@@ -47,10 +48,20 @@ async def upload_document(
     background_tasks: BackgroundTasks,
     file: UploadFile = File(...),
     db: Session = Depends(get_db),
-) -> DocumentRead:
+) -> DocumentRead | JSONResponse:
     suffix = Path(file.filename or "").suffix.lower()
     if suffix not in DocumentParser.supported_extensions:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"Unsupported file type: {suffix}")
+        return structured_error(
+            "UNSUPPORTED_DOCUMENT_TYPE",
+            "Unsupported document type.",
+            f"Supported extensions: {', '.join(sorted(DocumentParser.supported_extensions))}",
+            status.HTTP_400_BAD_REQUEST,
+        )
+
+    chroma_ok, chroma_details = chroma_client_manager.validate()
+    if not chroma_ok:
+        logger.warning("document_upload_chromadb_unavailable", extra={"filename": file.filename, "details": chroma_details})
+        return chromadb_unavailable()
 
     settings = get_settings()
     upload_dir = Path(settings.upload_path)
@@ -58,8 +69,17 @@ async def upload_document(
     document_id = str(uuid.uuid4())
     safe_name = Path(file.filename or f"document{suffix}").name
     storage_path = upload_dir / f"{document_id}{suffix}"
-    with storage_path.open("wb") as handle:
-        shutil.copyfileobj(file.file, handle)
+    try:
+        with storage_path.open("wb") as handle:
+            shutil.copyfileobj(file.file, handle)
+    except OSError as exc:
+        logger.exception("document_upload_write_failed", extra={"filename": safe_name})
+        return structured_error(
+            "DOCUMENT_UPLOAD_FAILED",
+            "Document upload failed.",
+            "Backend could not save the uploaded file.",
+            status.HTTP_500_INTERNAL_SERVER_ERROR,
+        )
 
     document = Document(
         id=document_id,
@@ -148,7 +168,12 @@ async def stream_rag_chat(payload: RagChatRequest, db: Session = Depends(get_db)
         chunks = await RagRetrievalPipeline(settings.rag_embedding_model).retrieve(payload.message, settings.rag_retrieval_limit)
     except (OllamaUnavailableError, VectorStoreUnavailableError) as exc:
         logger.warning("rag_retrieval_failed", extra={"chat_id": payload.chat_id, "error": str(exc)})
-        raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail=str(exc)) from exc
+        return chromadb_unavailable() if isinstance(exc, VectorStoreUnavailableError) else structured_error(
+            "OLLAMA_UNAVAILABLE",
+            "Ollama unavailable.",
+            "Local Ollama API is not reachable.",
+            status.HTTP_503_SERVICE_UNAVAILABLE,
+        )
 
     chat_service.add_message(db, payload.chat_id, "user", payload.message)
     history = chat_service.list_messages(db, payload.chat_id)
