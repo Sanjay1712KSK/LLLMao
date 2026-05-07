@@ -5,14 +5,18 @@ import type {
   KnowledgeDocument,
   ContextDebug,
   ConversationSummary,
+  DiagnosticsReport,
+  GitStatus,
   MemoryEntry,
   MemoryStatus,
   Message,
   OllamaHealth,
   OllamaModel,
+  PatchProposal,
   RagSource,
   RetrievalDebug,
   SystemStats,
+  TerminalResult,
   Workspace,
   WorkspaceFile,
   WorkspaceSource,
@@ -155,6 +159,29 @@ export const api = {
   retrieveMemory: (query: string, workspaceId?: string | null) =>
     jsonRequest<MemoryEntry[]>(`/memory/retrieve?query=${encodeURIComponent(query)}${workspaceId ? `&workspace_id=${encodeURIComponent(workspaceId)}` : ''}`),
   contextDebug: (chatId?: number | null) => jsonRequest<ContextDebug[]>(`/context/debug${chatId ? `?chat_id=${chatId}` : ''}`),
+  executeTerminal: (payload: { command: string; cwd: string; workspace_id?: string | null }) =>
+    jsonRequest<TerminalResult>('/terminal/execute', { method: 'POST', body: JSON.stringify(payload) }),
+  gitStatus: (cwd: string, workspaceId?: string | null) =>
+    jsonRequest<GitStatus>(`/git/status?cwd=${encodeURIComponent(cwd)}${workspaceId ? `&workspace_id=${encodeURIComponent(workspaceId)}` : ''}`),
+  gitDiff: (cwd: string, path?: string | null, workspaceId?: string | null) =>
+    jsonRequest<{ diff: string }>(
+      `/git/diff?cwd=${encodeURIComponent(cwd)}${path ? `&path=${encodeURIComponent(path)}` : ''}${workspaceId ? `&workspace_id=${encodeURIComponent(workspaceId)}` : ''}`,
+    ),
+  gitHistory: (cwd: string, workspaceId?: string | null) =>
+    jsonRequest<{ commits: Array<{ hash: string; date: string; subject: string }> }>(
+      `/git/history?cwd=${encodeURIComponent(cwd)}${workspaceId ? `&workspace_id=${encodeURIComponent(workspaceId)}` : ''}`,
+    ),
+  proposePatch: (payload: { cwd: string; patch_text: string; title: string; description?: string; workspace_id?: string | null }) =>
+    jsonRequest<PatchProposal>('/patch/generate', { method: 'POST', body: JSON.stringify(payload) }),
+  applyPatchProposal: (payload: { cwd: string; patch_id: string; approved: boolean }) =>
+    jsonRequest<PatchProposal>('/patch/apply', { method: 'POST', body: JSON.stringify(payload) }),
+  workspaceSearch: (workspaceId: string, query: string) =>
+    jsonRequest<{ query: string; keyword: Array<Record<string, unknown>>; semantic: Array<Record<string, unknown>> }>(
+      `/workspace/search?workspace_id=${encodeURIComponent(workspaceId)}&query=${encodeURIComponent(query)}`,
+    ),
+  workspaceDiagnostics: (workspaceId?: string | null) =>
+    jsonRequest<DiagnosticsReport>(`/workspace/diagnostics${workspaceId ? `?workspace_id=${encodeURIComponent(workspaceId)}` : ''}`),
+  ros2Overview: (workspaceId: string) => jsonRequest<Record<string, unknown>>(`/ros2/overview?workspace_id=${encodeURIComponent(workspaceId)}`),
   streamChat: async (
     payload: { chat_id: number; model: string; message: string },
     onChunk: (chunk: string) => void,

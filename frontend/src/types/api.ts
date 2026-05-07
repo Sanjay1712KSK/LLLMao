@@ -206,3 +206,33 @@ export type ContextDebug = {
   };
   created_at: string;
 };
+
+export type TerminalResult = {
+  id: string;
+  cwd: string;
+  command: string;
+  exit_code?: number | null;
+  output: string;
+  created_at: string;
+};
+
+export type GitStatus = {
+  branch: string;
+  changed_files: Array<{ status: string; path: string }>;
+};
+
+export type PatchProposal = {
+  id: string;
+  title: string;
+  description: string;
+  patch_text: string;
+  approved: boolean;
+  applied: boolean;
+  created_at: string;
+  applied_at?: string | null;
+};
+
+export type DiagnosticsReport = {
+  status: string;
+  issues: Array<{ severity: string; title: string; detail?: string | null }>;
+};

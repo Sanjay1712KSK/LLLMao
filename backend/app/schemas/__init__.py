@@ -1,4 +1,13 @@
 from app.schemas.chat import ChatCreate, ChatRead, ChatUpdate, MessageRead
+from app.schemas.developer_tools import (
+    DiagnosticsRead,
+    GitStatusRead,
+    PatchApplyRequest,
+    PatchGenerateRequest,
+    PatchRead,
+    TerminalExecuteRequest,
+    TerminalResultRead,
+)
 from app.schemas.memory import ContextDebugRead, IntelligentChatRequest, MemoryRead, MemoryStatusRead, SummarizeRequest, SummaryRead
 from app.schemas.multimodal import ContextSessionRead, ImageRead, MultimodalChatRequest, RetrievalDebugRead
 from app.schemas.ollama import ChatRequest, HealthRead, ModelRead, SystemStatsRead
@@ -12,9 +21,11 @@ __all__ = [
     "ContextSessionRead",
     "ContextDebugRead",
     "ChatRequest",
+    "DiagnosticsRead",
     "DocumentChunkRead",
     "DocumentRead",
     "HealthRead",
+    "GitStatusRead",
     "ImageRead",
     "IndexedFileRead",
     "IntelligentChatRequest",
@@ -24,10 +35,15 @@ __all__ = [
     "ModelRead",
     "MultimodalChatRequest",
     "RagChatRequest",
+    "PatchApplyRequest",
+    "PatchGenerateRequest",
+    "PatchRead",
     "RetrievalDebugRead",
     "SummarizeRequest",
     "SummaryRead",
     "SystemStatsRead",
+    "TerminalExecuteRequest",
+    "TerminalResultRead",
     "WorkspaceChatRequest",
     "WorkspaceConnectRequest",
     "WorkspaceRead",
