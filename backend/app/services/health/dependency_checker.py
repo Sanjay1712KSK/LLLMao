@@ -45,7 +45,7 @@ class DependencyChecker:
                 extra={
                     "dependency": status.name,
                     "ok": status.ok,
-                    "message": status.message,
+                    "status_message": status.message,
                     "details": status.details,
                 },
             )
