@@ -5,6 +5,7 @@ from sqlalchemy.orm import Session
 
 from app.database import get_db
 from app.developer_tools.diagnostics import DiagnosticsService
+from app.developer_tools.editor import EditorService
 from app.developer_tools.git import GitService
 from app.developer_tools.patches import PatchService
 from app.developer_tools.ros2 import Ros2Service
@@ -13,6 +14,9 @@ from app.developer_tools.security import ToolSecurityError
 from app.developer_tools.terminal import TerminalService
 from app.schemas import (
     DiagnosticsRead,
+    FileReadRequest,
+    FileReadResult,
+    FileSaveRequest,
     GitStatusRead,
     PatchApplyRequest,
     PatchGenerateRequest,
@@ -86,3 +90,19 @@ def workspace_diagnostics(workspace_id: str | None = None, db: Session = Depends
 @router.get("/ros2/overview")
 def ros2_overview(workspace_id: str, db: Session = Depends(get_db)) -> dict:
     return Ros2Service().package_overview(db, workspace_id)
+
+
+@router.post("/file/read", response_model=FileReadResult)
+def file_read(payload: FileReadRequest) -> FileReadResult:
+    try:
+        return FileReadResult.model_validate(EditorService().read(cwd=payload.cwd, path=payload.path))
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail={"error": True, "code": "FILE_READ_FAILED", "message": str(exc), "details": str(exc)}) from exc
+
+
+@router.post("/file/save", response_model=FileReadResult)
+def file_save(payload: FileSaveRequest) -> FileReadResult:
+    try:
+        return FileReadResult.model_validate(EditorService().save(cwd=payload.cwd, path=payload.path, content=payload.content))
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail={"error": True, "code": "FILE_SAVE_FAILED", "message": str(exc), "details": str(exc)}) from exc

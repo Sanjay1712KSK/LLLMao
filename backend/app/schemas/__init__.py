@@ -1,6 +1,9 @@
 from app.schemas.chat import ChatCreate, ChatRead, ChatUpdate, MessageRead
 from app.schemas.developer_tools import (
     DiagnosticsRead,
+    FileReadRequest,
+    FileReadResult,
+    FileSaveRequest,
     GitStatusRead,
     PatchApplyRequest,
     PatchGenerateRequest,
@@ -22,6 +25,9 @@ __all__ = [
     "ContextDebugRead",
     "ChatRequest",
     "DiagnosticsRead",
+    "FileReadRequest",
+    "FileReadResult",
+    "FileSaveRequest",
     "DocumentChunkRead",
     "DocumentRead",
     "HealthRead",

@@ -57,3 +57,19 @@ class PatchRead(BaseModel):
 class DiagnosticsRead(BaseModel):
     status: str
     issues: list[dict]
+
+
+class FileReadRequest(BaseModel):
+    cwd: str
+    path: str
+
+
+class FileSaveRequest(BaseModel):
+    cwd: str
+    path: str
+    content: str
+
+
+class FileReadResult(BaseModel):
+    path: str
+    content: str
