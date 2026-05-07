@@ -182,6 +182,10 @@ export const api = {
   workspaceDiagnostics: (workspaceId?: string | null) =>
     jsonRequest<DiagnosticsReport>(`/workspace/diagnostics${workspaceId ? `?workspace_id=${encodeURIComponent(workspaceId)}` : ''}`),
   ros2Overview: (workspaceId: string) => jsonRequest<Record<string, unknown>>(`/ros2/overview?workspace_id=${encodeURIComponent(workspaceId)}`),
+  readFile: (payload: { cwd: string; path: string }) =>
+    jsonRequest<{ path: string; content: string }>('/file/read', { method: 'POST', body: JSON.stringify(payload) }),
+  saveFile: (payload: { cwd: string; path: string; content: string }) =>
+    jsonRequest<{ path: string; content: string }>('/file/save', { method: 'POST', body: JSON.stringify(payload) }),
   streamChat: async (
     payload: { chat_id: number; model: string; message: string },
     onChunk: (chunk: string) => void,

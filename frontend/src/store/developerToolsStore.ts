@@ -9,12 +9,16 @@ type DeveloperToolsState = {
   gitDiff: string;
   diagnostics: DiagnosticsReport | null;
   searchResults: { query: string; keyword: Array<Record<string, unknown>>; semantic: Array<Record<string, unknown>> } | null;
+  openFile: { path: string; content: string; dirty: boolean } | null;
   error: string | null;
   runCommand: (command: string, cwd: string, workspaceId?: string | null) => Promise<void>;
   refreshGit: (cwd: string, workspaceId?: string | null) => Promise<void>;
   loadDiff: (cwd: string, path?: string | null, workspaceId?: string | null) => Promise<void>;
   runDiagnostics: (workspaceId?: string | null) => Promise<void>;
   searchWorkspace: (workspaceId: string, query: string) => Promise<void>;
+  readFile: (cwd: string, path: string) => Promise<void>;
+  setOpenFileContent: (content: string) => void;
+  saveOpenFile: (cwd: string) => Promise<void>;
 };
 
 export const useDeveloperToolsStore = create<DeveloperToolsState>((set) => ({
@@ -23,6 +27,7 @@ export const useDeveloperToolsStore = create<DeveloperToolsState>((set) => ({
   gitDiff: '',
   diagnostics: null,
   searchResults: null,
+  openFile: null,
   error: null,
 
   runCommand: async (command, cwd, workspaceId) => {
@@ -65,6 +70,28 @@ export const useDeveloperToolsStore = create<DeveloperToolsState>((set) => ({
       set({ searchResults: await api.workspaceSearch(workspaceId, query), error: null });
     } catch (error) {
       set({ error: error instanceof Error ? error.message : 'Workspace search failed' });
+    }
+  },
+
+  readFile: async (cwd, path) => {
+    try {
+      const file = await api.readFile({ cwd, path });
+      set({ openFile: { ...file, dirty: false }, error: null });
+    } catch (error) {
+      set({ error: error instanceof Error ? error.message : 'File read failed' });
+    }
+  },
+
+  setOpenFileContent: (content) => set((state) => ({ openFile: state.openFile ? { ...state.openFile, content, dirty: true } : null })),
+
+  saveOpenFile: async (cwd) => {
+    const file = useDeveloperToolsStore.getState().openFile;
+    if (!file) return;
+    try {
+      const saved = await api.saveFile({ cwd, path: file.path, content: file.content });
+      set({ openFile: { ...saved, dirty: false }, error: null });
+    } catch (error) {
+      set({ error: error instanceof Error ? error.message : 'File save failed' });
     }
   },
 }));

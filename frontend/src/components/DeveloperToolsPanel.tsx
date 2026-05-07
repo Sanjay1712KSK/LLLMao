@@ -16,12 +16,16 @@ export function DeveloperToolsPanel() {
     gitDiff,
     diagnostics,
     searchResults,
+    openFile,
     error,
     runCommand,
     refreshGit,
     loadDiff,
     runDiagnostics,
     searchWorkspace,
+    readFile,
+    setOpenFileContent,
+    saveOpenFile,
   } = useDeveloperToolsStore();
 
   useEffect(() => {
@@ -84,11 +88,28 @@ export function DeveloperToolsPanel() {
             {searchResults && (
               <div className="mt-2 max-h-32 space-y-1 overflow-y-auto">
                 {[...searchResults.semantic, ...searchResults.keyword].slice(0, 8).map((item, index) => (
-                  <div key={index} className="truncate text-[11px] text-muted">{String(item.path || '')}{item.symbol ? ` / ${String(item.symbol)}` : ''}</div>
+                  <button key={index} className="block w-full truncate text-left text-[11px] text-muted hover:text-ink" type="button" onClick={() => item.path && void readFile(cwd, String(item.path))}>
+                    {String(item.path || '')}{item.symbol ? ` / ${String(item.symbol)}` : ''}
+                  </button>
                 ))}
               </div>
             )}
           </div>
+
+          {openFile && (
+            <div className="rounded-lg border border-line bg-panel p-2">
+              <div className="mb-2 flex items-center justify-between gap-2 text-xs text-muted">
+                <span className="truncate">{openFile.path}{openFile.dirty ? ' *' : ''}</span>
+                <button className="rounded border border-line px-2 py-0.5 hover:text-ink" type="button" onClick={() => void saveOpenFile(cwd)}>Save</button>
+              </div>
+              <textarea
+                className="h-40 w-full resize-none rounded border border-line bg-surface p-2 font-mono text-[11px] leading-4 text-ink outline-none"
+                value={openFile.content}
+                spellCheck={false}
+                onChange={(event) => setOpenFileContent(event.target.value)}
+              />
+            </div>
+          )}
 
           <div className="rounded-lg border border-line bg-panel p-2">
             <button className="flex w-full items-center justify-between text-left text-xs text-muted" type="button" onClick={() => void runDiagnostics(activeWorkspaceId)}>
