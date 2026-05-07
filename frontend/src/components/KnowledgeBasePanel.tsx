@@ -140,7 +140,16 @@ export function KnowledgeBasePanel() {
         ))}
         {!documents.length && <div className="rounded-lg border border-line bg-panel p-3 text-xs text-muted">No indexed documents yet.</div>}
       </div>
-      {error && <div className="mt-2 rounded-lg border border-red-500/30 bg-red-500/10 p-2 text-xs text-red-200">{error}</div>}
+      {error && (
+        <div className="mt-2 rounded-lg border border-red-500/30 bg-red-500/10 p-2 text-xs text-red-200">
+          <div className="flex items-center justify-between gap-2">
+            <span>{error}</span>
+            <button className="rounded border border-red-400/30 px-2 py-1 hover:bg-red-500/10" type="button" onClick={() => void refreshDocuments()}>
+              Retry
+            </button>
+          </div>
+        </div>
+      )}
     </section>
   );
 }

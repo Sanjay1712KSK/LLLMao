@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import base64
 import logging
-import shutil
 import uuid
 from pathlib import Path
 
@@ -10,7 +9,7 @@ from fastapi import UploadFile
 
 from app.config import get_settings
 from app.models import ImageAsset
-from app.multimodal.image_processing import ImageProcessor
+from app.multimodal.image_processing import ImageService
 
 logger = logging.getLogger("lllmao.image_store")
 
@@ -20,7 +19,7 @@ class ImageStore:
         settings = get_settings()
         self.root = Path(settings.image_path)
         self.root.mkdir(parents=True, exist_ok=True)
-        self.processor = ImageProcessor()
+        self.image_service = ImageService()
 
     async def save_upload(self, file: UploadFile, chat_id: int | None = None) -> ImageAsset:
         image_id = str(uuid.uuid4())
@@ -29,10 +28,13 @@ class ImageStore:
         suffix = Path(safe_name).suffix.lower() or ".jpg"
         target = self.root / f"{image_id}{suffix}"
         thumbnail = self.root / f"{image_id}.thumb.jpg"
-        with staging.open("wb") as handle:
-            shutil.copyfileobj(file.file, handle)
         try:
-            width, height, size_bytes, mime_type = self.processor.normalize(staging, target, thumbnail)
+            width, height, size_bytes, mime_type = await self.image_service.save_and_process(
+                file,
+                staging=staging,
+                target=target,
+                thumbnail=thumbnail,
+            )
         except Exception:
             logger.exception("image_upload_processing_failed", extra={"filename": safe_name, "chat_id": chat_id})
             target.unlink(missing_ok=True)

@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import json
 import logging
-import shutil
 import uuid
 from pathlib import Path
 
@@ -17,7 +16,7 @@ from app.models import Document, DocumentChunk
 from app.rag.indexing import DocumentIndexer, indexing_cancellations, indexing_progress
 from app.rag.parsers import DocumentParser
 from app.rag.retrieval.pipeline import RagRetrievalPipeline, build_contextual_messages
-from app.rag.vectorstore import ChromaVectorStore, VectorStoreUnavailableError, chroma_client_manager
+from app.rag.vectorstore import ChromaVectorStore, VectorStoreUnavailableError
 from app.schemas import DocumentChunkRead, DocumentRead, RagChatRequest
 from app.services import chat_service
 from app.services.errors import chromadb_unavailable, structured_error
@@ -25,6 +24,7 @@ from app.services.ollama_service import OllamaService, OllamaUnavailableError
 
 router = APIRouter(tags=["rag"])
 logger = logging.getLogger("lllmao.rag")
+MAX_UPLOAD_BYTES = 64 * 1024 * 1024
 
 
 def _file_type(filename: str) -> str:
@@ -58,11 +58,6 @@ async def upload_document(
             status.HTTP_400_BAD_REQUEST,
         )
 
-    chroma_ok, chroma_details = chroma_client_manager.validate()
-    if not chroma_ok:
-        logger.warning("document_upload_chromadb_unavailable", extra={"filename": file.filename, "details": chroma_details})
-        return chromadb_unavailable()
-
     settings = get_settings()
     upload_dir = Path(settings.upload_path)
     upload_dir.mkdir(parents=True, exist_ok=True)
@@ -70,8 +65,19 @@ async def upload_document(
     safe_name = Path(file.filename or f"document{suffix}").name
     storage_path = upload_dir / f"{document_id}{suffix}"
     try:
+        size = 0
         with storage_path.open("wb") as handle:
-            shutil.copyfileobj(file.file, handle)
+            while chunk := await file.read(1024 * 1024):
+                size += len(chunk)
+                if size > MAX_UPLOAD_BYTES:
+                    storage_path.unlink(missing_ok=True)
+                    return structured_error(
+                        "DOCUMENT_TOO_LARGE",
+                        "Document upload is too large.",
+                        "Use files under 64 MB for local indexing.",
+                        status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
+                    )
+                handle.write(chunk)
     except OSError as exc:
         logger.exception("document_upload_write_failed", extra={"filename": safe_name})
         return structured_error(
@@ -80,6 +86,8 @@ async def upload_document(
             "Backend could not save the uploaded file.",
             status.HTTP_500_INTERNAL_SERVER_ERROR,
         )
+    finally:
+        await file.close()
 
     document = Document(
         id=document_id,

@@ -2,12 +2,14 @@ import { create } from 'zustand';
 
 import { api } from '../services/api';
 import type { KnowledgeDocument } from '../types/api';
+import { useNotificationStore } from './notificationStore';
 
 type KnowledgeState = {
   documents: KnowledgeDocument[];
   uploadProgress: Record<string, number>;
   isLoading: boolean;
   error: string | null;
+  retryUpload: (file: File) => Promise<void>;
   refreshDocuments: () => Promise<void>;
   uploadFiles: (files: File[]) => Promise<void>;
   deleteDocument: (documentId: string) => Promise<void>;
@@ -37,11 +39,12 @@ export const useKnowledgeStore = create<KnowledgeState>((set, get) => ({
       const key = `${file.name}-${file.lastModified}`;
       set((state) => ({ uploadProgress: { ...state.uploadProgress, [key]: 0 } }));
       try {
-        await api.uploadDocument(file, (progress) =>
-          set((state) => ({ uploadProgress: { ...state.uploadProgress, [key]: progress } })),
-        );
+        await uploadWithRetry(file, (progress) => set((state) => ({ uploadProgress: { ...state.uploadProgress, [key]: progress } })));
       } catch (error) {
-        set({ error: error instanceof Error ? error.message : 'Upload failed' });
+        const message = error instanceof Error ? error.message : 'Upload failed';
+        const details = error && typeof error === 'object' && 'details' in error ? String(error.details ?? '') : undefined;
+        set({ error: message });
+        useNotificationStore.getState().notify({ kind: 'error', title: 'Document upload failed', message, details });
       } finally {
         set((state) => {
           const next = { ...state.uploadProgress };
@@ -52,6 +55,8 @@ export const useKnowledgeStore = create<KnowledgeState>((set, get) => ({
       }
     }
   },
+
+  retryUpload: async (file) => get().uploadFiles([file]),
 
   deleteDocument: async (documentId) => {
     await api.deleteDocument(documentId);
@@ -68,3 +73,15 @@ export const useKnowledgeStore = create<KnowledgeState>((set, get) => ({
     await get().refreshDocuments();
   },
 }));
+
+async function uploadWithRetry(file: File, onProgress: (progress: number) => void) {
+  try {
+    return await api.uploadDocument(file, onProgress);
+  } catch (error) {
+    if (error && typeof error === 'object' && 'code' in error && error.code === 'BACKEND_UNAVAILABLE') {
+      await new Promise((resolve) => window.setTimeout(resolve, 800));
+      return api.uploadDocument(file, onProgress);
+    }
+    throw error;
+  }
+}

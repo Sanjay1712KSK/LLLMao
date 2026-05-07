@@ -19,6 +19,7 @@ class HealthRead(BaseModel):
     chromadb: bool = False
     pillow: bool = False
     database: bool = False
+    uploads: bool = False
     backend_ok: bool = True
     ollama_ok: bool
     database_ok: bool

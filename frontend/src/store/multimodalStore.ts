@@ -75,7 +75,7 @@ export const useMultimodalStore = create<MultimodalState>((set, get) => ({
         ),
       }));
       try {
-        const result = await api.uploadImage(image.file, chatId, (progress) => {
+        const result = await uploadImageWithRetry(image.file, chatId, (progress) => {
           set((state) => ({
             pendingImages: state.pendingImages.map((item, itemIndex) => (itemIndex === index ? { ...item, progress } : item)),
           }));
@@ -113,3 +113,15 @@ export const useMultimodalStore = create<MultimodalState>((set, get) => ({
     set({ debugLogs });
   },
 }));
+
+async function uploadImageWithRetry(file: File, chatId: number, onProgress: (progress: number) => void) {
+  try {
+    return await api.uploadImage(file, chatId, onProgress);
+  } catch (error) {
+    if (error && typeof error === 'object' && 'code' in error && error.code === 'BACKEND_UNAVAILABLE') {
+      await new Promise((resolve) => window.setTimeout(resolve, 800));
+      return api.uploadImage(file, chatId, onProgress);
+    }
+    throw error;
+  }
+}

@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import logging
 from datetime import UTC, datetime
 from pathlib import Path
 
@@ -11,11 +12,13 @@ from app.database.session import SessionLocal
 from app.models import CodeSymbol, IndexedFile, Workspace
 from app.rag.embeddings import OllamaEmbeddingService
 from app.rag.vectorstore import ChromaVectorStore, VectorStoreUnavailableError, WORKSPACE_COLLECTION
+from app.services.ollama_service import OllamaUnavailableError
 from app.workspace.parsers import CodeParser, language_for_path
 from app.workspace.types import CodeChunk
 
 workspace_progress: dict[str, dict[str, int | str]] = {}
 workspace_cancellations: set[str] = set()
+logger = logging.getLogger("lllmao.workspace_indexer")
 
 IGNORED_DIRS = {
     ".git",
@@ -72,15 +75,23 @@ class WorkspaceIndexer:
                 indexed_file_ids.add(file_record.id)
                 total_symbols += len(chunks)
                 if vectorstore is not None and chunks:
-                    chunk_embeddings = []
-                    for chunk in chunks:
-                        chunk_embeddings.append(await embeddings.embed(chunk.content))
-                    vectorstore.upsert_records(
-                        ids=[chunk.id for chunk in chunks],
-                        documents=[chunk.content for chunk in chunks],
-                        embeddings=chunk_embeddings,
-                        metadatas=[self._metadata(chunk) for chunk in chunks],
-                    )
+                    try:
+                        chunk_embeddings = []
+                        for chunk in chunks:
+                            chunk_embeddings.append(await embeddings.embed(chunk.content))
+                        vectorstore.upsert_records(
+                            ids=[chunk.id for chunk in chunks],
+                            documents=[chunk.content for chunk in chunks],
+                            embeddings=chunk_embeddings,
+                            metadatas=[self._metadata(chunk) for chunk in chunks],
+                        )
+                    except (OllamaUnavailableError, VectorStoreUnavailableError) as exc:
+                        logger.warning(
+                            "workspace_vector_file_indexing_failed",
+                            extra={"workspace_id": workspace_id, "file_path": str(path), "error": str(exc)},
+                        )
+                        vector_error = f"Vector indexing unavailable: {exc}"
+                        vectorstore = None
                 workspace_progress[workspace_id] = {"status": "indexing", "done": index, "total": len(files)}
 
             existing_files = db.scalars(select(IndexedFile).where(IndexedFile.workspace_id == workspace_id)).all()
@@ -95,6 +106,7 @@ class WorkspaceIndexer:
             db.commit()
             workspace_progress[workspace_id] = {"status": "indexed", "done": len(files), "total": len(files)}
         except Exception as exc:
+            logger.exception("workspace_indexing_crashed", extra={"workspace_id": workspace_id})
             workspace = db.get(Workspace, workspace_id)
             if workspace is not None:
                 workspace.status = "failed"

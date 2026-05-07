@@ -13,6 +13,7 @@ logger = logging.getLogger("lllmao.chroma")
 DOCUMENTS_COLLECTION = "documents"
 WORKSPACE_COLLECTION = "workspace_chunks"
 MULTIMODAL_COLLECTION = "multimodal_context"
+SEMANTIC_MEMORY_COLLECTION = "semantic_memory"
 CONVERSATIONAL_MEMORY_COLLECTION = "conversational_memory"
 PROJECT_MEMORY_COLLECTION = "project_memory"
 SEMANTIC_NOTES_COLLECTION = "semantic_notes"
@@ -23,7 +24,7 @@ MEMORY_COLLECTIONS = (
     PROJECT_MEMORY_COLLECTION,
     SEMANTIC_NOTES_COLLECTION,
 )
-REQUIRED_COLLECTIONS = (DOCUMENTS_COLLECTION, WORKSPACE_COLLECTION, MULTIMODAL_COLLECTION, *MEMORY_COLLECTIONS)
+REQUIRED_COLLECTIONS = (DOCUMENTS_COLLECTION, WORKSPACE_COLLECTION, MULTIMODAL_COLLECTION, SEMANTIC_MEMORY_COLLECTION, *MEMORY_COLLECTIONS)
 
 
 class ChromaUnavailableError(RuntimeError):
@@ -65,6 +66,11 @@ class ChromaClientManager:
             return False, str(exc)
         return True, None
 
+    def reset(self) -> None:
+        with self._lock:
+            self._client = None
+            self._collections = {}
+
     def client(self) -> Any:
         with self._lock:
             if self._client is not None:
@@ -91,8 +97,13 @@ class ChromaClientManager:
                 chroma_client = client or self.client()
                 collection = chroma_client.get_or_create_collection(name=name, metadata={"hnsw:space": "cosine"})
             except Exception as exc:  # noqa: BLE001
-                logger.exception("chromadb_collection_initialization_failed", extra={"collection": name})
-                raise ChromaUnavailableError("ChromaDB dependency missing or failed to initialize.") from exc
+                logger.warning("chromadb_collection_retry", extra={"collection": name, "error": str(exc)})
+                self.reset()
+                try:
+                    collection = self.client().get_or_create_collection(name=name, metadata={"hnsw:space": "cosine"})
+                except Exception as retry_exc:  # noqa: BLE001
+                    logger.exception("chromadb_collection_initialization_failed", extra={"collection": name})
+                    raise ChromaUnavailableError("ChromaDB dependency missing or failed to initialize.") from retry_exc
             self._collections[name] = collection
             return collection
 

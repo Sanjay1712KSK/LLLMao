@@ -67,10 +67,18 @@ function xhrError(request: XMLHttpRequest, fallback: string): ApiError {
 }
 
 async function jsonRequest<T>(path: string, init?: RequestInit): Promise<T> {
-  const response = await fetch(`${API_BASE_URL}${path}`, {
-    headers: { 'Content-Type': 'application/json', ...(init?.headers ?? {}) },
-    ...init,
-  });
+  let response: Response;
+  try {
+    response = await fetch(`${API_BASE_URL}${path}`, {
+      headers: { 'Content-Type': 'application/json', ...(init?.headers ?? {}) },
+      ...init,
+    });
+  } catch (error) {
+    throw new ApiError('Backend unavailable.', {
+      code: 'BACKEND_UNAVAILABLE',
+      details: error instanceof Error ? error.message : 'Network request failed.',
+    });
+  }
   if (!response.ok) {
     throw await responseError(response);
   }
@@ -116,6 +124,7 @@ export const api = {
       formData.append('file', file);
       const request = new XMLHttpRequest();
       request.open('POST', `${API_BASE_URL}/upload`);
+      request.timeout = 120000;
       request.upload.onprogress = (event) => {
         if (event.lengthComputable) onProgress?.(Math.round((event.loaded / event.total) * 100));
       };
@@ -126,7 +135,8 @@ export const api = {
           reject(xhrError(request, 'Upload failed'));
         }
       };
-      request.onerror = () => reject(new ApiError('Upload failed'));
+      request.onerror = () => reject(new ApiError('Backend unavailable.', { code: 'BACKEND_UNAVAILABLE', details: 'Document upload request failed.' }));
+      request.ontimeout = () => reject(new ApiError('Upload timed out.', { code: 'UPLOAD_TIMEOUT', details: 'The backend did not finish the upload in time.' }));
       request.send(formData);
     }),
   uploadImage: (file: File, chatId?: number | null, onProgress?: (progress: number) => void) =>
@@ -135,6 +145,7 @@ export const api = {
       formData.append('file', file);
       const request = new XMLHttpRequest();
       request.open('POST', `${API_BASE_URL}/images/upload${chatId ? `?chat_id=${chatId}` : ''}`);
+      request.timeout = 90000;
       request.upload.onprogress = (event) => {
         if (event.lengthComputable) onProgress?.(Math.round((event.loaded / event.total) * 100));
       };
@@ -145,7 +156,8 @@ export const api = {
           reject(xhrError(request, 'Image upload failed'));
         }
       };
-      request.onerror = () => reject(new ApiError('Image upload failed'));
+      request.onerror = () => reject(new ApiError('Backend unavailable.', { code: 'BACKEND_UNAVAILABLE', details: 'Image upload request failed.' }));
+      request.ontimeout = () => reject(new ApiError('Image upload timed out.', { code: 'UPLOAD_TIMEOUT', details: 'The backend did not finish the image upload in time.' }));
       request.send(formData);
     }),
   imageThumbnailUrl: (imageId: string) => `${API_BASE_URL}/images/${imageId}/thumbnail`,

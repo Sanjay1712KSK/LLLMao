@@ -15,6 +15,7 @@ async def health(db: Session = Depends(get_db)) -> HealthRead:
     database_status = dependency_checker.check_database(db)
     chroma_status = dependency_checker.cached("chromadb") or dependency_checker.check_chromadb()
     pillow_status = dependency_checker.cached("pillow") or dependency_checker.check_pillow()
+    uploads_status = dependency_checker.cached("uploads") or dependency_checker.check_upload_paths()
     pypdf_status = dependency_checker.cached("pypdf") or dependency_checker.check_import(
         "pypdf", "pypdf", "PDF parser unavailable.", "Install pypdf in backend requirements."
     )
@@ -32,6 +33,7 @@ async def health(db: Session = Depends(get_db)) -> HealthRead:
         chromadb=chroma_status.ok,
         pillow=pillow_status.ok,
         database=database_status.ok,
+        uploads=uploads_status.ok,
         ollama_ok=ok,
         database_ok=database_status.ok,
         dependencies={
@@ -41,5 +43,6 @@ async def health(db: Session = Depends(get_db)) -> HealthRead:
             "python-docx": {"ok": docx_status.ok, "message": docx_status.message},
             "watchdog": {"ok": watchdog_status.ok, "message": watchdog_status.message},
             "sqlite": {"ok": database_status.ok, "message": database_status.message},
+            "uploads": {"ok": uploads_status.ok, "message": uploads_status.message},
         },
     )

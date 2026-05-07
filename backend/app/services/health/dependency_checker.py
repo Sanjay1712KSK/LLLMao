@@ -4,6 +4,7 @@ import importlib.util
 import logging
 import sqlite3
 from dataclasses import dataclass
+from pathlib import Path
 from typing import Literal
 
 import httpx
@@ -15,7 +16,7 @@ from app.rag.vectorstore import chroma_client_manager
 
 logger = logging.getLogger("lllmao.dependencies")
 
-DependencyName = Literal["chromadb", "pillow", "pypdf", "python-docx", "watchdog", "ollama", "sqlite"]
+DependencyName = Literal["chromadb", "pillow", "pypdf", "python-docx", "watchdog", "ollama", "sqlite", "uploads"]
 
 
 @dataclass(slots=True)
@@ -49,6 +50,7 @@ class DependencyChecker:
                 "Install watchdog in backend requirements.",
             ),
             "sqlite": self.check_sqlite_import(),
+            "uploads": self.check_upload_paths(),
             "ollama": await self.check_ollama(),
         }
         self._startup_status = statuses
@@ -98,6 +100,23 @@ class DependencyChecker:
         except sqlite3.Error as exc:
             return DependencyStatus(name="sqlite", ok=False, message="SQLite unavailable.", details=str(exc))
         return DependencyStatus(name="sqlite", ok=True, message="SQLite is available.")
+
+    def check_upload_paths(self) -> DependencyStatus:
+        try:
+            settings = get_settings()
+            for path in (Path(settings.upload_path), Path(settings.image_path), Path(settings.chroma_path)):
+                path.mkdir(parents=True, exist_ok=True)
+                probe = path / ".lllmao-write-test"
+                probe.write_text("ok", encoding="utf-8")
+                probe.unlink(missing_ok=True)
+        except OSError as exc:
+            return DependencyStatus(
+                name="uploads",
+                ok=False,
+                message="Upload storage unavailable.",
+                details=str(exc),
+            )
+        return DependencyStatus(name="uploads", ok=True, message="Upload and vector storage paths are writable.")
 
     def check_database(self, db: Session) -> DependencyStatus:
         try:
