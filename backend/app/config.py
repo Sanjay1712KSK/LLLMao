@@ -12,6 +12,8 @@ class Settings(BaseSettings):
     database_url: str = f"sqlite:///{backend_root / 'database' / 'workspace.sqlite3'}"
     upload_path: str = str(backend_root / "uploads")
     image_path: str = str(backend_root / "images")
+    chat_media_path: str = "/mnt/ai-storage/lllmao/chat-media"
+    models_piper_path: str = "/mnt/ai-storage/lllmao/models/piper"
     chroma_path: str = str(backend_root / "database" / "chroma")
     rag_embedding_model: str = "nomic-embed-text"
     rag_retrieval_limit: int = 5
