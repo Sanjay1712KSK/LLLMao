@@ -37,6 +37,7 @@ export type Message = {
   content: string;
   created_at: string;
   sources?: RetrievalSource[];
+  attachments?: ChatAttachment[];
 };
 
 export type DocumentStatus = 'queued' | 'indexing' | 'indexed' | 'failed' | 'cancelled' | 'cancelling' | string;
@@ -250,4 +251,30 @@ export type OrchestrationStatus = {
   degraded_mode: boolean;
   suspend_indexing: boolean;
   concurrency: number;
+};
+
+export type ChatAttachment = {
+  id: string;
+  message_id: number;
+  type: 'image' | 'audio' | 'pdf';
+  source_type: 'user' | 'assistant' | 'system';
+  mime_type: string;
+  filename: string;
+  duration_ms?: number | null;
+  sample_rate?: number | null;
+  channels?: number | null;
+  width?: number | null;
+  height?: number | null;
+  pages?: number | null;
+  transcript?: string | null;
+  timestamps_json?: string | null;
+  embeddings_hook?: string | null;
+  audio_session_id?: string | null;
+  extra_metadata?: Record<string, unknown>;
+};
+
+export type UnifiedStreamEvent = {
+  type: string;
+  session_id?: string;
+  payload: Record<string, unknown>;
 };
