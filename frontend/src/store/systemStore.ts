@@ -1,20 +1,8 @@
 import { create } from 'zustand';
 
 import { api } from '../services/api';
-import type { OllamaHealth, SystemStats } from '../types/api';
+import type { OllamaHealth, SystemStats, OrchestrationStatus } from '../types/api';
 import { useChatStore } from './chatStore';
-
-export type OrchestrationStatus = {
-  policy: string;
-  coexistence_level: string;
-  vram_pressure: number;
-  ram_pressure: number;
-  thermal_throttling: boolean;
-  status: string;
-  degraded_mode: boolean;
-  suspend_indexing: boolean;
-  concurrency: number;
-};
 
 type SystemState = {
   stats: SystemStats | null;
@@ -63,12 +51,8 @@ export const useSystemStore = create<SystemState>((set, get) => ({
 
   fetchOrchestration: async () => {
     try {
-      // Direct fetch call since we didn't add it to api.ts yet
-      const response = await fetch('http://localhost:11434/api/orchestration/status');
-      if (response.ok) {
-        const orchestration = await response.json();
-        set({ orchestration, error: null });
-      }
+      const orchestration = await api.orchestrationStatus();
+      set({ orchestration, error: null });
     } catch (error) {
       // Suppress missing orchestration backend for now
     }
@@ -76,15 +60,8 @@ export const useSystemStore = create<SystemState>((set, get) => ({
 
   setPolicy: async (policy: string) => {
     try {
-      const response = await fetch('http://localhost:11434/api/orchestration/policy', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ policy }),
-      });
-      if (response.ok) {
-        const orchestration = await response.json();
-        set({ orchestration });
-      }
+      const orchestration = await api.setOrchestrationPolicy(policy);
+      set({ orchestration });
     } catch (error) {
       console.error(error);
     }
@@ -92,15 +69,8 @@ export const useSystemStore = create<SystemState>((set, get) => ({
 
   setCoexistence: async (level: string) => {
     try {
-      const response = await fetch('http://localhost:11434/api/orchestration/coexistence', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ level }),
-      });
-      if (response.ok) {
-        const orchestration = await response.json();
-        set({ orchestration });
-      }
+      const orchestration = await api.setOrchestrationCoexistence(level);
+      set({ orchestration });
     } catch (error) {
       console.error(error);
     }

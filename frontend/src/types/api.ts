@@ -132,10 +132,13 @@ export type RetrievalDebug = {
   id: string;
   chat_id?: number | null;
   mode: string;
+  strategy?: string | null;
   query: string;
   sources: Record<string, unknown>[];
   context_summary: string;
   token_budget: number;
+  chunks_allocated?: number | null;
+  chunks_retrieved?: number | null;
   created_at: string;
 };
 
@@ -235,4 +238,16 @@ export type PatchProposal = {
 export type DiagnosticsReport = {
   status: string;
   issues: Array<{ severity: string; title: string; detail?: string | null }>;
+};
+
+export type OrchestrationStatus = {
+  policy: string;
+  coexistence_level: string;
+  vram_pressure: number;
+  ram_pressure: number;
+  thermal_throttling: boolean;
+  status: string;
+  degraded_mode: boolean;
+  suspend_indexing: boolean;
+  concurrency: number;
 };

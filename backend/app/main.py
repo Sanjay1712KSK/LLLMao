@@ -9,7 +9,7 @@ from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from app.config import get_settings
 from app.database.init_db import init_db
-from app.routers import chat, developer_tools, health, memory, models, multimodal, rag, stats, workspace
+from app.routers import chat, developer_tools, health, memory, models, multimodal, orchestration, rag, stats, workspace
 from app.services.exception_handlers import http_exception_handler, unhandled_exception_handler, validation_exception_handler
 from app.services.health import dependency_checker
 
@@ -52,3 +52,4 @@ app.include_router(developer_tools.router, prefix=settings.api_prefix)
 app.include_router(rag.router, prefix=settings.api_prefix)
 app.include_router(workspace.router, prefix=settings.api_prefix)
 app.include_router(multimodal.router, prefix=settings.api_prefix)
+app.include_router(orchestration.router, prefix=settings.api_prefix)

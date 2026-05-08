@@ -20,6 +20,7 @@ import type {
   Workspace,
   WorkspaceFile,
   WorkspaceSource,
+  OrchestrationStatus,
 } from '../types/api';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? 'http://127.0.0.1:8000';
@@ -100,6 +101,9 @@ export const api = {
     const response = await fetch(`${API_BASE_URL}/chats/${chatId}`, { method: 'DELETE' });
     if (!response.ok) throw await responseError(response);
   },
+  orchestrationStatus: () => jsonRequest<OrchestrationStatus>('/orchestration/status'),
+  setOrchestrationPolicy: (policy: string) => jsonRequest<OrchestrationStatus>('/orchestration/policy', { method: 'POST', body: JSON.stringify({ policy }) }),
+  setOrchestrationCoexistence: (level: string) => jsonRequest<OrchestrationStatus>('/orchestration/coexistence', { method: 'POST', body: JSON.stringify({ level }) }),
   messages: (chatId: number) => jsonRequest<Message[]>(`/messages/${chatId}`),
   documents: () => jsonRequest<KnowledgeDocument[]>('/documents'),
   chunks: (documentId: string) => jsonRequest<KnowledgeChunk[]>(`/documents/${documentId}/chunks`),
