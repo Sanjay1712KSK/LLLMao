@@ -81,16 +81,14 @@ async def synthesize_to_file(text: str, model_id: str, output_path: str) -> None
     voice = load_voice(model_id)
     import wave
     
-    with wave.open(output_path, "wb") as wav_file:
-        wav_file.setnchannels(1)
-        wav_file.setsampwidth(2) # 16-bit
-        wav_file.setframerate(voice.config.sample_rate)
-        
-        loop = asyncio.get_running_loop()
-        def _generate():
-            return voice.synthesize_stream_raw(text)
+    loop = asyncio.get_running_loop()
+    def _generate():
+        with wave.open(output_path, "wb") as wav_file:
+            wav_file.setnchannels(1)
+            wav_file.setsampwidth(2) # 16-bit
+            wav_file.setframerate(voice.config.sample_rate)
             
-        audio_stream = await loop.run_in_executor(None, _generate)
-        for chunk in audio_stream:
-            wav_file.writeframes(chunk)
-            await asyncio.sleep(0)
+            for chunk in voice.synthesize_stream_raw(text):
+                wav_file.writeframes(chunk)
+                
+    await loop.run_in_executor(None, _generate)

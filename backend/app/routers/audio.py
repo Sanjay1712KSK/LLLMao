@@ -196,8 +196,11 @@ async def generate_audio(payload: GenerateRequest, db: Session = Depends(get_db)
     await synthesize_to_file(payload.text, payload.model_id, str(storage_path))
     latency = time.time() - start
     
-    import librosa
-    duration = librosa.get_duration(path=str(storage_path))
+    import wave
+    with wave.open(str(storage_path), "rb") as w:
+        frames = w.getnframes()
+        rate = w.getframerate()
+        duration = frames / float(rate)
     
     attachment = ChatAttachment(
         id=attachment_id,
