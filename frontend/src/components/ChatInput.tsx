@@ -4,6 +4,7 @@ import clsx from 'clsx';
 
 import { useChatStore } from '../store/chatStore';
 import { useMultimodalStore } from '../store/multimodalStore';
+import { AudioRecorder } from './audio/AudioRecorder';
 
 export function ChatInput() {
   const [value, setValue] = useState('');
@@ -83,6 +84,7 @@ export function ChatInput() {
             <ImagePlus size={14} />
             Images
           </button>
+          <AudioRecorder />
           </div>
           <input
             ref={fileInputRef}
