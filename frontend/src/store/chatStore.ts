@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 
-import { api } from '../services/api';
+import { api, API_BASE_URL } from '../services/api';
 import type { Chat, Message, OllamaHealth, OllamaModel } from '../types/api';
 import { useMultimodalStore } from './multimodalStore';
 import { useNotificationStore } from './notificationStore';
@@ -272,7 +272,7 @@ export const useChatStore = create<ChatState>((set, get) => ({
         const assistantMsg = hydratedMessages[hydratedMessages.length - 1];
         
         if (assistantMsg && assistantMsg.role === 'assistant' && assistantMsg.content && typeof assistantMsg.id === 'number') {
-            fetch('/api/audio/generate', {
+            fetch(`${API_BASE_URL}/audio/generate`, {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({ 

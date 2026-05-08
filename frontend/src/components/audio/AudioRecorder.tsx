@@ -2,6 +2,7 @@ import React, { useRef, useEffect, useState } from 'react';
 import { Mic, MicOff, Square, Loader2 } from 'lucide-react';
 import { useAudioStore } from '../../store/audioStore';
 import { useChatStore } from '../../store/chatStore';
+import { API_BASE_URL } from '../../services/api';
 
 export const AudioRecorder: React.FC = () => {
   const { state, setState, silenceDetectionEnabled, silenceSensitivity, silenceTimeoutMs } = useAudioStore();
@@ -120,7 +121,7 @@ export const AudioRecorder: React.FC = () => {
         formData.append('chat_id', activeChatId.toString());
       }
 
-      const response = await fetch('/api/audio/upload', {
+      const response = await fetch(`${API_BASE_URL}/audio/upload`, {
         method: 'POST',
         body: formData,
       });

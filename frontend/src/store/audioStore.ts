@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { api } from '../services/api';
+import { api, API_BASE_URL } from '../services/api';
 
 export type AudioState = 
   | 'IDLE' 
@@ -68,7 +68,7 @@ export const useAudioStore = create<AudioStoreState>((set, get) => ({
   
   fetchVoices: async () => {
     try {
-      const response = await fetch('/api/audio/models/piper/available');
+      const response = await fetch(`${API_BASE_URL}/audio/models/piper/available`);
       if (response.ok) {
         const data = await response.json();
         set({ voices: data.available });
@@ -90,7 +90,7 @@ export const useAudioStore = create<AudioStoreState>((set, get) => ({
         downloadProgress: { ...state.downloadProgress, [model_id]: 0 }
       }));
       
-      const response = await fetch('/api/audio/models/piper/download', {
+      const response = await fetch(`${API_BASE_URL}/audio/models/piper/download`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ model_id, onnx_url, json_url })

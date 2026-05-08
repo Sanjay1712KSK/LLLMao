@@ -5,6 +5,7 @@ import { useAutoScroll } from '../hooks/useAutoScroll';
 import { useChatStore } from '../store/chatStore';
 import { useWorkspaceStore } from '../store/workspaceStore';
 import type { RetrievalSource } from '../types/api';
+import { API_BASE_URL } from '../services/api';
 import { MarkdownMessage } from './MarkdownMessage';
 import { AudioPlayer } from './audio/AudioPlayer';
 
@@ -74,7 +75,7 @@ export function ChatView() {
                           return (
                             <AudioPlayer
                               key={attachment.id}
-                              src={`/api/media/${message.chat_id}/${attachment.id}`}
+                              src={`${API_BASE_URL}/media/${message.chat_id}/${attachment.id}`}
                               durationMs={attachment.duration_ms || undefined}
                               transcript={attachment.transcript || undefined}
                             />
