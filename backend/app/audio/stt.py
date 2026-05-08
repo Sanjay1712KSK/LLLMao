@@ -3,7 +3,7 @@ import time
 from typing import Any
 
 from faster_whisper import WhisperModel
-import librosa
+import os
 
 from app.orchestration.scheduler import scheduler
 
@@ -30,10 +30,9 @@ async def transcribe_audio(file_path: str) -> dict[str, Any]:
     """
     Transcribes audio file using faster-whisper, returning segments and text.
     """
-    # Duration limit check
-    duration = librosa.get_duration(path=file_path)
-    if duration > MAX_AUDIO_DURATION_SECONDS:
-        raise ValueError(f"Audio duration {duration:.1f}s exceeds maximum allowed ({MAX_AUDIO_DURATION_SECONDS}s).")
+    # File size limit check (approx 5MB for 5 mins of webm)
+    if os.path.getsize(file_path) > 10 * 1024 * 1024:
+        raise ValueError(f"Audio file size exceeds maximum allowed (10MB).")
 
     model = await _get_model()
     
@@ -63,6 +62,6 @@ async def transcribe_audio(file_path: str) -> dict[str, Any]:
         "segments": segments,
         "language": info.language,
         "language_probability": info.language_probability,
-        "duration": duration,
+        "duration": info.duration,
         "latency_ms": int(latency * 1000)
     }
