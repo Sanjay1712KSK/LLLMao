@@ -60,7 +60,7 @@ class ChatAttachment(Base):
     __tablename__ = "chat_attachments"
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True)
-    message_id: Mapped[int] = mapped_column(ForeignKey("messages.id", ondelete="CASCADE"), index=True, nullable=False)
+    message_id: Mapped[int | None] = mapped_column(ForeignKey("messages.id", ondelete="CASCADE"), index=True, nullable=True)
     type: Mapped[AttachmentType] = mapped_column(String(32), nullable=False)
     source_type: Mapped[AttachmentSource] = mapped_column(String(32), nullable=False, default=AttachmentSource.USER)
     mime_type: Mapped[str] = mapped_column(String(80), nullable=False)

@@ -26,7 +26,7 @@ class ChatRead(BaseModel):
 
 class ChatAttachmentRead(BaseModel):
     id: str
-    message_id: int
+    message_id: int | None = None
     type: str
     source_type: str
     mime_type: str
