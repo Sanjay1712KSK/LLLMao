@@ -174,3 +174,46 @@ async def synthesize_audio_stream(payload: SynthesizeRequest):
             yield f"data: {json.dumps({'type': 'error', 'payload': {'message': str(e)}})}\n\n"
             
     return StreamingResponse(event_stream(), media_type="text/event-stream")
+
+class GenerateRequest(BaseModel):
+    text: str
+    model_id: str
+    chat_id: int
+    message_id: int | None = None
+
+@router.post("/audio/generate", response_model=ChatAttachmentRead)
+async def generate_audio(payload: GenerateRequest, db: Session = Depends(get_db)):
+    from app.audio.tts import synthesize_to_file
+    from app.audio.utils import get_generated_dir
+    import uuid
+    import time
+    
+    attachment_id = str(uuid.uuid4())
+    dest_dir = get_generated_dir(payload.chat_id)
+    storage_path = dest_dir / f"{attachment_id}.wav"
+    
+    start = time.time()
+    await synthesize_to_file(payload.text, payload.model_id, str(storage_path))
+    latency = time.time() - start
+    
+    import librosa
+    duration = librosa.get_duration(path=str(storage_path))
+    
+    attachment = ChatAttachment(
+        id=attachment_id,
+        message_id=payload.message_id,
+        type=AttachmentType.AUDIO,
+        source_type=AttachmentSource.ASSISTANT,
+        mime_type="audio/wav",
+        filename=f"tts_{attachment_id[:8]}.wav",
+        storage_path=str(storage_path),
+        duration_ms=int(duration * 1000),
+        transcript=payload.text,
+        extra_metadata=json.dumps({"tts_latency_ms": int(latency * 1000)})
+    )
+    
+    db.add(attachment)
+    db.commit()
+    db.refresh(attachment)
+    
+    return ChatAttachmentRead.model_validate(attachment)

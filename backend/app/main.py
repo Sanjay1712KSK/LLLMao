@@ -21,6 +21,10 @@ logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name
 async def lifespan(_: FastAPI) -> AsyncIterator[None]:
     init_db()
     await dependency_checker.startup_check()
+    
+    from app.audio.cleanup import cleanup_stale_audio
+    import asyncio
+    asyncio.create_task(asyncio.to_thread(cleanup_stale_audio, 7))
     yield
 
 

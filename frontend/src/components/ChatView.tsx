@@ -6,6 +6,7 @@ import { useChatStore } from '../store/chatStore';
 import { useWorkspaceStore } from '../store/workspaceStore';
 import type { RetrievalSource } from '../types/api';
 import { MarkdownMessage } from './MarkdownMessage';
+import { AudioPlayer } from './audio/AudioPlayer';
 
 export function ChatView() {
   const { messages, isStreaming, health, error, bootstrap } = useChatStore();
@@ -64,6 +65,23 @@ export function ChatView() {
                           {sourceLabel(source)}
                         </span>
                       ))}
+                    </div>
+                  )}
+                  {message.attachments && message.attachments.length > 0 && (
+                    <div className="mt-3 flex flex-col gap-3">
+                      {message.attachments.map((attachment) => {
+                        if (attachment.type === 'audio') {
+                          return (
+                            <AudioPlayer
+                              key={attachment.id}
+                              src={`/api/media/${message.chat_id}/${attachment.id}`}
+                              durationMs={attachment.duration_ms || undefined}
+                              transcript={attachment.transcript || undefined}
+                            />
+                          );
+                        }
+                        return null;
+                      })}
                     </div>
                   )}
                 </>

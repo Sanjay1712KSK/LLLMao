@@ -5,6 +5,7 @@ import type { Chat, Message, OllamaHealth, OllamaModel } from '../types/api';
 import { useMultimodalStore } from './multimodalStore';
 import { useNotificationStore } from './notificationStore';
 import { useWorkspaceStore } from './workspaceStore';
+import { useAudioStore } from './audioStore';
 
 type ChatState = {
   chats: Chat[];
@@ -262,6 +263,42 @@ export const useChatStore = create<ChatState>((set, get) => ({
       if (frame != null) window.cancelAnimationFrame(frame);
       flushChunk();
       set({ chats, messages: hydratedMessages, isStreaming: false, controller: null, streamFrame: null });
+
+      const audioState = useAudioStore.getState().state;
+      const activeModelId = useAudioStore.getState().activeModelId;
+      
+      if (audioState === 'WAITING_FOR_LLM' && activeModelId) {
+        useAudioStore.getState().setState('GENERATING_TTS');
+        const assistantMsg = hydratedMessages[hydratedMessages.length - 1];
+        
+        if (assistantMsg && assistantMsg.role === 'assistant' && assistantMsg.content && typeof assistantMsg.id === 'number') {
+            fetch('/api/audio/generate', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ 
+                text: assistantMsg.content, 
+                model_id: activeModelId,
+                chat_id: chatId,
+                message_id: assistantMsg.id
+              })
+            }).then(res => {
+              if (res.ok) return res.json();
+              throw new Error('TTS failed');
+            }).then(attachment => {
+              set(state => ({
+                 messages: state.messages.map(m => 
+                   m.id === assistantMsg.id ? { ...m, attachments: [...(m.attachments || []), attachment] } : m
+                 )
+              }));
+              useAudioStore.getState().setState('IDLE');
+            }).catch(e => {
+              console.error("Failed to generate TTS", e);
+              useAudioStore.getState().setState('IDLE');
+            });
+        } else {
+           useAudioStore.getState().setState('IDLE');
+        }
+      }
     } catch (error) {
       if (frame != null) window.cancelAnimationFrame(frame);
       flushChunk();
