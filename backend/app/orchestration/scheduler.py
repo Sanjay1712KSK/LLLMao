@@ -17,7 +17,7 @@ class RuntimeScheduler:
     def __init__(self) -> None:
         self.watcher = VRAMPressureWatcher()
         self.profiler = HardwareProfiler()
-        self.policy: Literal["normal", "gaming", "rendering", "simulation", "battery", "coding", "inference-heavy"] = "normal"
+        self.policy: Literal["normal", "gaming", "rendering", "simulation", "battery", "coding", "inference-heavy", "voice"] = "normal"
         self.coexistence_level: Literal["normal", "coexistence-light", "coexistence-heavy", "inference-only"] = "normal"
 
     def set_policy(self, policy: str) -> None:
