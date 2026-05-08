@@ -9,6 +9,7 @@ import { Sidebar } from '../components/Sidebar';
 import { SystemDashboard } from '../components/SystemDashboard';
 import { useChatStore } from '../store/chatStore';
 import { useSystemStore } from '../store/systemStore';
+import { AudioModelModal } from '../components/audio/AudioModelModal';
 
 export default function App() {
   const bootstrap = useChatStore((state) => state.bootstrap);
@@ -25,6 +26,7 @@ export default function App() {
   return (
     <div className="h-screen overflow-hidden bg-surface text-ink">
       <Notifications />
+      <AudioModelModal />
       <div className="flex h-full">
         <div className="hidden md:block">
           <Sidebar />
