@@ -14,6 +14,8 @@ The application connects exclusively to locally-installed Ollama models through 
 
 **Language Composition:** Python 64.4% | TypeScript 35.1% | Other 0.5%
 
+■■■■■■■
+
 ---
 
 ## Core Philosophy
