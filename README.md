@@ -1,4 +1,4 @@
-# LLLMao - Local Large Language Model Assistant Orchestrator (Currently in development)
+# LLLMao - Local Large Language Model Assistant Orchestrator (Currently in development) - Under the Watch
 
 **A lightweight Linux-native local AI workstation platform**
 
