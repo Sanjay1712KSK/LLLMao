@@ -1,31 +1,82 @@
 name: lllmao
 base: core24
-version: '0.1.0'
-summary: Local Lightweight Language Model Assistant Orchestrator
+version: 'v1Janus-Beta'
+summary: Local AI Workstation Platform
 description: |
-  LLLMao is a Linux-native local AI workstation for installed Ollama models,
-  semantic RAG, workspace intelligence, multimodal workflows, and runtime
-  orchestration. It does not bundle model weights or use cloud inference.
+  LLLMao is a local-first, offline-first Linux-native AI workstation.
+  Chat with local Ollama models, perform workspace contextual retrieval,
+  and analyze images using multimodal vision models.
 
-grade: stable
+grade: devel
 confinement: classic
-license: MIT
 
 apps:
   lllmao:
-    command: bin/lllmao
-    desktop: usr/share/applications/com.lllmao.desktop.desktop
+    command: scripts/start-lllmao.sh
+    desktop: assets/lllmao.desktop
     environment:
-      MYOWNRTXCHAT_OLLAMA_BASE_URL: http://localhost:11434
+      PYTHONUNBUFFERED: "1"
     plugs:
-      - home
       - network
       - network-bind
+      - home
       - removable-media
+      - audio-playback
+      - audio-record
+      - opengl
+      - desktop
+      - desktop-legacy
+      - wayland
+      - x11
 
 parts:
-  lllmao:
+  scripts:
     plugin: dump
-    source: ../../tauri/target/release/bundle/deb
+    source: deployment/scripts
     organize:
-      '*.deb': artifacts/
+      start-lllmao.sh: scripts/start-lllmao.sh
+
+  assets:
+    plugin: dump
+    source: deployment/assets
+    organize:
+      lllmao.desktop: assets/lllmao.desktop
+
+  backend:
+    plugin: python
+    source: backend
+    python-packages:
+      - "uvicorn[standard]"
+    build-packages:
+      - build-essential
+      - python3-dev
+    stage-packages:
+      - libasound2t64
+      - ffmpeg
+
+  frontend:
+    plugin: npm
+    source: frontend
+    npm-node-version: "20.10.0"
+    build-packages:
+      - curl
+      - wget
+      - libwebkit2gtk-4.1-dev
+      - build-essential
+      - libssl-dev
+      - libgtk-3-dev
+      - libayatana-appindicator3-dev
+      - librsvg2-dev
+    override-build: |
+      # Install Rust
+      curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
+      export PATH="$HOME/.cargo/bin:$PATH"
+      
+      # Build Tauri
+      npm ci
+      npm run build
+      npx tauri build --bundles deb
+      
+      # Copy the binary to the snap part
+      mkdir -p $CRAFT_PART_INSTALL/frontend
+      cp src-tauri/target/release/LLLMao $CRAFT_PART_INSTALL/frontend/
