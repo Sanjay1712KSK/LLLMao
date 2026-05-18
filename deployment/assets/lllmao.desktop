@@ -1,0 +1,8 @@
+[Desktop Entry]
+Name=LLLMao
+Exec=lllmao
+Icon=${SNAP}/meta/gui/icon.png
+Type=Application
+Categories=Development;Utility;AI;
+Terminal=false
+Comment=Local-first Linux-native AI workstation
