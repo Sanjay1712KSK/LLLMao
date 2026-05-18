@@ -39,7 +39,7 @@ export function ChatInput() {
 
   return (
     <div
-      className={clsx('sticky bottom-0 border-t bg-surface/80 px-4 py-5 backdrop-blur', dragActive ? 'border-accent' : 'border-line')}
+      className={clsx('sticky bottom-0 px-4 py-6 z-10', dragActive ? 'border-accent' : 'border-transparent')}
       onDragEnter={(event) => {
         event.preventDefault();
         setDragActive(true);
@@ -57,12 +57,12 @@ export function ChatInput() {
         addImages(Array.from(event.dataTransfer.files));
       }}
     >
-      <div className={clsx('mx-auto max-w-4xl rounded-2xl border bg-elevated p-2.5 shadow-float transition-colors', dragActive ? 'border-accent bg-accent/5' : 'border-line')}>
+      <div className={clsx('mx-auto max-w-4xl rounded-3xl border bg-elevated/90 p-3 shadow-float backdrop-blur-md transition-colors', dragActive ? 'border-accent bg-accent/5' : 'border-line')}>
         <div className="mb-2 flex items-center justify-between px-2">
           <div className="flex flex-wrap gap-2">
           <button
-            className={`inline-flex items-center gap-2 rounded-lg border px-2.5 py-1.5 text-xs ${
-              useKnowledgeBase ? 'border-accent bg-accent/10 text-accent' : 'border-line text-muted hover:bg-hover hover:text-ink'
+            className={`inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs ${
+              useKnowledgeBase ? 'border-accent bg-accent/10 text-accent' : 'border-transparent text-muted hover:bg-hover hover:text-ink'
             }`}
             type="button"
             onClick={() => setUseKnowledgeBase(!useKnowledgeBase)}
@@ -72,8 +72,8 @@ export function ChatInput() {
             Use Knowledge Base
           </button>
           <button
-            className={`inline-flex items-center gap-2 rounded-lg border px-2.5 py-1.5 text-xs ${
-              useWorkspace ? 'border-accent bg-accent/10 text-accent' : 'border-line text-muted hover:bg-hover hover:text-ink'
+            className={`inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs ${
+              useWorkspace ? 'border-accent bg-accent/10 text-accent' : 'border-transparent text-muted hover:bg-hover hover:text-ink'
             }`}
             type="button"
             onClick={() => setUseWorkspace(!useWorkspace)}
@@ -83,7 +83,7 @@ export function ChatInput() {
             Use Workspace
           </button>
           <button
-            className="inline-flex items-center gap-2 rounded-lg border border-line px-2.5 py-1.5 text-xs text-muted hover:bg-hover hover:text-ink"
+            className="inline-flex items-center gap-2 rounded-full border border-transparent px-3 py-1.5 text-xs text-muted hover:bg-hover hover:text-ink"
             type="button"
             onClick={() => fileInputRef.current?.click()}
             title="Attach images"
@@ -158,7 +158,7 @@ export function ChatInput() {
         />
         {isStreaming ? (
           <button
-            className="mb-1 inline-flex h-11 w-11 items-center justify-center rounded-lg border border-line text-red-300 hover:bg-red-500/15"
+            className="mb-1 inline-flex h-12 w-12 shrink-0 items-center justify-center rounded-full border border-line text-red-300 hover:bg-red-500/15"
             onClick={stopGeneration}
             type="button"
             title="Stop generation"
@@ -167,7 +167,7 @@ export function ChatInput() {
           </button>
         ) : (
           <button
-            className="mb-1 inline-flex h-11 w-11 items-center justify-center rounded-lg bg-accent text-accent-ink disabled:cursor-not-allowed disabled:opacity-40 transition-opacity"
+            className="mb-1 inline-flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-accent text-accent-ink disabled:cursor-not-allowed disabled:opacity-40 transition-opacity hover:brightness-110"
             onClick={submit}
             disabled={!value.trim() || !health.ok || !selectedModel || isModelLoading}
             type="button"
