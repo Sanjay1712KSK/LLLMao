@@ -73,7 +73,7 @@ export function KnowledgeBasePanel() {
       {activeUploads.length > 0 && (
         <div className="mt-2 space-y-2">
           {activeUploads.map(([name, progress]) => (
-            <div key={name} className="rounded-lg border border-line bg-panel p-2">
+            <div key={name} className="rounded-lg border border-line bg-elevated p-2">
               <div className="truncate text-xs text-ink">{name.split('-').slice(0, -1).join('-')}</div>
               <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-subtle">
                 <div className="h-full bg-accent" style={{ width: `${progress}%` }} />
@@ -85,7 +85,7 @@ export function KnowledgeBasePanel() {
 
       <div className="mt-3 max-h-64 space-y-2 overflow-y-auto pr-1">
         {documents.map((document) => (
-          <div key={document.id} className="rounded-lg border border-line bg-panel p-2">
+          <div key={document.id} className="rounded-lg border border-line bg-elevated p-2">
             <div className="flex items-start gap-2">
               <FileText size={15} className="mt-0.5 shrink-0 text-accent" />
               <div className="min-w-0 flex-1">
@@ -138,7 +138,7 @@ export function KnowledgeBasePanel() {
             </div>
           </div>
         ))}
-        {!documents.length && <div className="rounded-lg border border-line bg-panel p-3 text-xs text-muted">No indexed documents yet.</div>}
+        {!documents.length && <div className="rounded-lg border border-line bg-elevated p-3 text-xs text-muted">No indexed documents yet.</div>}
       </div>
       {error && (
         <div className="mt-2 rounded-lg border border-red-500/30 bg-red-500/10 p-2 text-xs text-red-200">

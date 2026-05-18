@@ -49,7 +49,7 @@ export function WorkspacePanel() {
 
       <div className="flex gap-2">
         <input
-          className="min-w-0 flex-1 rounded-lg border border-line bg-surface px-2 py-2 text-xs text-ink outline-none placeholder:text-muted"
+          className="min-w-0 flex-1 rounded-lg border border-line bg-input px-2 py-2 text-xs text-ink outline-none placeholder:text-muted"
           placeholder="/path/to/ros2_ws"
           value={path}
           onChange={(event) => setPath(event.target.value)}
@@ -69,7 +69,7 @@ export function WorkspacePanel() {
 
       {workspaces.length > 0 && (
         <select
-          className="mt-2 h-9 w-full rounded-lg border border-line bg-panel px-2 text-xs text-ink outline-none"
+          className="mt-2 h-9 w-full rounded-lg border border-line bg-elevated px-2 text-xs text-ink outline-none"
           value={activeWorkspaceId}
           onChange={(event) => setActiveWorkspace(event.target.value)}
         >
@@ -82,7 +82,7 @@ export function WorkspacePanel() {
       )}
 
       {active && (
-        <div className="mt-2 rounded-lg border border-line bg-panel p-2">
+        <div className="mt-2 rounded-lg border border-line bg-elevated p-2">
           <div className="flex items-start justify-between gap-2">
             <div className="min-w-0">
               <div className="truncate text-xs font-medium text-ink" title={active.root_path}>
@@ -114,7 +114,7 @@ export function WorkspacePanel() {
 
       <div className="mt-2 max-h-48 space-y-1 overflow-y-auto pr-1">
         {files.slice(0, 80).map((file) => (
-          <div key={file.id} className="flex items-center justify-between gap-2 rounded border border-line/80 bg-surface px-2 py-1.5">
+          <div key={file.id} className="flex items-center justify-between gap-2 rounded border border-line/80 bg-input px-2 py-1.5">
             <span className="min-w-0 truncate text-[11px] text-muted" title={file.relative_path}>
               {file.relative_path}
             </span>

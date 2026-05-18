@@ -19,7 +19,7 @@ export function Notifications() {
       {notifications.map((notification) => {
         const Icon = iconFor[notification.kind];
         return (
-          <div key={notification.id} className="rounded-lg border border-line bg-panel p-3 shadow-soft">
+          <div key={notification.id} className="rounded-lg border border-line bg-elevated p-3 shadow-float">
             <div className="flex gap-3">
               <Icon className={notification.kind === 'error' ? 'text-red-300' : 'text-accent'} size={18} />
               <div className="min-w-0 flex-1">
@@ -28,7 +28,7 @@ export function Notifications() {
                 {notification.details && (
                   <details className="mt-2 text-xs text-muted">
                     <summary className="cursor-pointer text-ink/80">Technical details</summary>
-                    <div className="mt-1 rounded border border-line bg-surface p-2 font-mono text-[11px] leading-4">{notification.details}</div>
+                    <div className="mt-1 rounded border border-line bg-code p-2 font-mono text-[11px] leading-4">{notification.details}</div>
                   </details>
                 )}
               </div>

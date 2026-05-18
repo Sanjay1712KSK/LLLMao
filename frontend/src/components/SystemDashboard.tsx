@@ -60,7 +60,7 @@ export function SystemDashboard() {
             <Gauge size={17} className="text-accent" />
             {!collapsed && 'Live System'}
           </div>
-          <button className="rounded p-1 text-muted hover:bg-surface hover:text-ink" type="button" title={collapsed ? 'Expand telemetry' : 'Collapse telemetry'} onClick={() => setCollapsed(!collapsed)}>
+          <button className="rounded p-1 text-muted hover:bg-hover hover:text-ink" type="button" title={collapsed ? 'Expand telemetry' : 'Collapse telemetry'} onClick={() => setCollapsed(!collapsed)}>
             {collapsed ? <ChevronUp size={15} /> : <ChevronDown size={15} />}
           </button>
           {!collapsed && isDegraded && (
@@ -73,10 +73,10 @@ export function SystemDashboard() {
       </div>
       {!collapsed && <div className="min-h-0 flex-1 space-y-3 overflow-y-auto p-3">
         {orchestration && (
-          <div className="rounded-lg border border-line bg-panel p-3">
+          <div className="rounded-lg border border-line bg-elevated p-3">
              <div className="mb-2 text-xs font-medium uppercase tracking-wide text-muted">Runtime Policy Profile</div>
              <select 
-               className="w-full rounded border border-line bg-surface p-1.5 text-sm text-ink outline-none"
+               className="w-full rounded border border-line bg-input p-1.5 text-sm text-ink outline-none"
                value={orchestration.policy}
                onChange={(e) => setPolicy(e.target.value)}
              >
@@ -106,7 +106,7 @@ export function SystemDashboard() {
           alert={vramPressure ? vramPressure > 85 : false}
         />
         <Metric label="Tokens/sec" value={tokensPerSecond ? tokensPerSecond.toFixed(1) : isStreaming ? 'Estimating' : 'Idle'} detail="Approximate local stream rate" icon={<Bot size={15} />} />
-        <div className="rounded-lg border border-line bg-panel p-3">
+        <div className="rounded-lg border border-line bg-elevated p-3">
           <div className="mb-3 text-xs font-medium uppercase tracking-wide text-muted">Runtime</div>
           <div className="space-y-2 text-sm">
             <div className="flex items-center justify-between gap-3">

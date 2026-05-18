@@ -20,7 +20,7 @@ export function RetrievalDebugPanel() {
       </div>
       <div className="max-h-40 space-y-2 overflow-y-auto">
         {debugLogs.slice(0, 5).map((log) => (
-          <div key={log.id} className="rounded-lg border border-line bg-panel p-2">
+          <div key={log.id} className="rounded-lg border border-line bg-elevated p-2">
             <div className="flex items-center justify-between text-[11px] text-muted">
               <span className="truncate max-w-[80%] font-semibold text-ink">{log.query}</span>
               <Activity size={12} className="text-accent" />
@@ -34,7 +34,7 @@ export function RetrievalDebugPanel() {
             </div>
           </div>
         ))}
-        {!debugLogs.length && <div className="rounded-lg border border-line bg-panel p-2 text-xs text-muted">No context logs yet.</div>}
+        {!debugLogs.length && <div className="rounded-lg border border-line bg-elevated p-2 text-xs text-muted">No context logs yet.</div>}
       </div>
     </section>
   );
