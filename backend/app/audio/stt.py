@@ -26,7 +26,13 @@ async def _get_model() -> WhisperModel:
         compute_type = "float16" if device == "cuda" else "int8"
         
         logger.info(f"Loading faster-whisper model '{_model_size}' on {device} ({compute_type})")
-        _stt_model = WhisperModel(_model_size, device=device, compute_type=compute_type)
+        try:
+            _stt_model = WhisperModel(_model_size, device=device, compute_type=compute_type)
+        except Exception:
+            if device == "cpu":
+                raise
+            logger.exception("faster_whisper_cuda_load_failed_falling_back_to_cpu")
+            _stt_model = WhisperModel(_model_size, device="cpu", compute_type="int8")
     return _stt_model
 
 async def transcribe_audio(file_path: str) -> dict[str, Any]:
