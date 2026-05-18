@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import logging
+import tempfile
 from logging.handlers import RotatingFileHandler
 from pathlib import Path
 
@@ -17,7 +18,12 @@ def configure_logging() -> None:
     root.setLevel(logging.INFO)
 
     if not any(isinstance(handler, RotatingFileHandler) for handler in root.handlers):
-        file_handler = RotatingFileHandler(log_path, maxBytes=2_000_000, backupCount=5)
+        try:
+            file_handler = RotatingFileHandler(log_path, maxBytes=2_000_000, backupCount=5)
+        except OSError:
+            fallback = Path(tempfile.gettempdir()) / "lllmao" / "backend.log"
+            fallback.parent.mkdir(parents=True, exist_ok=True)
+            file_handler = RotatingFileHandler(fallback, maxBytes=2_000_000, backupCount=5)
         file_handler.setFormatter(formatter)
         root.addHandler(file_handler)
 
