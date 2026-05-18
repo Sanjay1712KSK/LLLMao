@@ -8,19 +8,21 @@
   color-scheme: dark;
   font-family:
     Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  background: #212121;
-  --surface: #212121;
-  --panel: #2f2f2f;
-  --panel-soft: #292929;
-  --elevated: #333333;
-  --code: #171717;
-  --ink: #ececec;
-  --muted: #b4b4b4;
-  --line: #424242;
-  --hover: rgba(255, 255, 255, 0.07);
+  background: #000000;
+  --surface: #000000;
+  --panel: #111111;
+  --panel-soft: #070707;
+  --elevated: #171717;
+  --code: #0b0b0b;
+  --ink: #f1f1ef;
+  --muted: #a8a8a2;
+  --tertiary: #73736d;
+  --line: rgba(255, 255, 255, 0.085);
+  --hover: rgba(255, 255, 255, 0.075);
   --subtle: rgba(255, 255, 255, 0.045);
+  --input: #101010;
   --accent: #10a37f;
-  --accent-ink: #062d24;
+  --accent-ink: #041f19;
 }
 
 :root[data-theme="light"] {
@@ -33,9 +35,11 @@
   --code: #f3f3f0;
   --ink: #2f2f2f;
   --muted: #6f6f6f;
+  --tertiary: #96968f;
   --line: #deded8;
   --hover: rgba(0, 0, 0, 0.055);
   --subtle: rgba(0, 0, 0, 0.035);
+  --input: #ffffff;
   --accent: #10a37f;
   --accent-ink: #ffffff;
 }
@@ -49,6 +53,7 @@ body {
   min-width: 320px;
   min-height: 100vh;
   background: var(--surface);
+  color: var(--ink);
 }
 
 #root {
@@ -60,6 +65,17 @@ select,
 textarea,
 input {
   font: inherit;
+}
+
+select,
+textarea,
+input {
+  background: var(--input);
+  color: var(--ink);
+}
+
+button {
+  color: inherit;
 }
 
 code,
@@ -95,4 +111,51 @@ pre {
 .hljs {
   background: transparent;
   color: var(--ink);
+}
+
+:root[data-theme="dark"] .hljs-comment,
+:root:not([data-theme="light"]) .hljs-comment {
+  color: #7f7f76;
+}
+
+:root[data-theme="dark"] .hljs-keyword,
+:root[data-theme="dark"] .hljs-selector-tag,
+:root:not([data-theme="light"]) .hljs-keyword,
+:root:not([data-theme="light"]) .hljs-selector-tag {
+  color: #c8b6ff;
+}
+
+:root[data-theme="dark"] .hljs-string,
+:root[data-theme="dark"] .hljs-title,
+:root:not([data-theme="light"]) .hljs-string,
+:root:not([data-theme="light"]) .hljs-title {
+  color: #8fd6b5;
+}
+
+:root[data-theme="dark"] .hljs-number,
+:root[data-theme="dark"] .hljs-literal,
+:root:not([data-theme="light"]) .hljs-number,
+:root:not([data-theme="light"]) .hljs-literal {
+  color: #f0c674;
+}
+
+* {
+  scrollbar-color: color-mix(in srgb, var(--muted) 34%, transparent) transparent;
+  scrollbar-width: thin;
+}
+
+*::-webkit-scrollbar {
+  height: 10px;
+  width: 10px;
+}
+
+*::-webkit-scrollbar-thumb {
+  background: color-mix(in srgb, var(--muted) 28%, transparent);
+  border: 3px solid transparent;
+  border-radius: 999px;
+  background-clip: content-box;
+}
+
+*::-webkit-scrollbar-track {
+  background: transparent;
 }

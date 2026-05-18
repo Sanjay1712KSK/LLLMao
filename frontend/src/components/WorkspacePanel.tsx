@@ -42,7 +42,7 @@ export function WorkspacePanel() {
           <FolderGit2 size={14} />
           Workspace
         </div>
-        <button className="rounded p-1 text-muted hover:bg-white/10 hover:text-ink" type="button" title="Refresh workspaces" onClick={() => refreshWorkspaces()}>
+        <button className="rounded p-1 text-muted hover:bg-hover hover:text-ink" type="button" title="Refresh workspaces" onClick={() => refreshWorkspaces()}>
           <RefreshCw size={14} />
         </button>
       </div>
@@ -55,7 +55,7 @@ export function WorkspacePanel() {
           onChange={(event) => setPath(event.target.value)}
         />
         <button
-          className="rounded-lg border border-line px-2 text-xs text-muted hover:bg-white/10 hover:text-ink"
+          className="rounded-lg border border-line px-2 text-xs text-muted hover:bg-hover hover:text-ink"
           type="button"
           onClick={() => {
             if (!path.trim()) return;
@@ -95,7 +95,7 @@ export function WorkspacePanel() {
               </div>
             </div>
             <div className="flex gap-1">
-              <button className="rounded p-1 text-muted hover:bg-white/10 hover:text-ink" type="button" title="Reindex workspace" onClick={() => reindexWorkspace(active.id)}>
+              <button className="rounded p-1 text-muted hover:bg-hover hover:text-ink" type="button" title="Reindex workspace" onClick={() => reindexWorkspace(active.id)}>
                 <RefreshCw size={14} />
               </button>
               <button className="rounded p-1 text-muted hover:bg-red-500/20 hover:text-red-300" type="button" title="Disconnect workspace" onClick={() => disconnectWorkspace(active.id)}>
@@ -104,7 +104,7 @@ export function WorkspacePanel() {
             </div>
           </div>
           {active.progress_total > 0 && ['queued', 'indexing'].includes(active.status) && (
-            <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-white/10">
+            <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-subtle">
               <div className="h-full bg-accent" style={{ width: `${Math.round((active.progress_done / active.progress_total) * 100)}%` }} />
             </div>
           )}
@@ -131,5 +131,5 @@ function statusClass(status: string) {
   if (status === 'indexed') return 'bg-accent/15 text-accent';
   if (status === 'failed') return 'bg-red-500/15 text-red-300';
   if (['queued', 'indexing'].includes(status)) return 'bg-blue-500/15 text-blue-200';
-  return 'bg-white/10 text-muted';
+  return 'bg-subtle text-muted';
 }

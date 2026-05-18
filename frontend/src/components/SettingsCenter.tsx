@@ -41,7 +41,7 @@ export function SettingsCenter() {
         <Settings size={20} />
       </button>
       {settingsOpen && (
-        <div className="fixed inset-0 z-50 bg-black/55 p-3 backdrop-blur-sm" onClick={() => setSettingsOpen(false)}>
+        <div className="fixed inset-0 z-50 bg-black/80 p-3 backdrop-blur-sm" onClick={() => setSettingsOpen(false)}>
           <section className="ml-auto flex h-full w-full max-w-3xl flex-col overflow-hidden rounded-lg border border-line bg-surface shadow-soft" onClick={(event) => event.stopPropagation()}>
             <header className="flex items-center justify-between border-b border-line px-5 py-4">
               <div className="flex items-center gap-2 text-base font-semibold text-ink"><MonitorCog size={18} className="text-accent" /> Settings</div>

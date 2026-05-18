@@ -14,7 +14,7 @@ export function RetrievalDebugPanel() {
           <Bug size={14} />
           Context & Retrieval
         </div>
-        <button className="rounded p-1 text-muted hover:bg-white/10 hover:text-ink" type="button" title="Refresh context logs" onClick={() => refreshDebug(currentChatId)}>
+        <button className="rounded p-1 text-muted hover:bg-hover hover:text-ink" type="button" title="Refresh context logs" onClick={() => refreshDebug(currentChatId)}>
           <RefreshCw size={14} />
         </button>
       </div>

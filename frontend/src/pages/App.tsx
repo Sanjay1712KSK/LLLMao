@@ -40,7 +40,7 @@ export default function App() {
           <Sidebar />
         </div>
         {sidebarOpen && (
-          <div className="fixed inset-0 z-40 bg-black/60 md:hidden" onClick={() => setSidebarOpen(false)}>
+          <div className="fixed inset-0 z-40 bg-black/80 md:hidden" onClick={() => setSidebarOpen(false)}>
             <div className="h-full w-80 max-w-[85vw]" onClick={(event) => event.stopPropagation()}>
               <Sidebar />
             </div>
@@ -48,7 +48,7 @@ export default function App() {
         )}
         <section className="flex min-w-0 flex-1 flex-col">
           <div className="flex items-center border-b border-line bg-surface md:hidden">
-            <button className="m-2 rounded-lg p-2 text-muted hover:bg-white/5 hover:text-ink" onClick={() => setSidebarOpen(true)} type="button" title="Open sidebar">
+            <button className="m-2 rounded-lg p-2 text-muted hover:bg-hover hover:text-ink" onClick={() => setSidebarOpen(true)} type="button" title="Open sidebar">
               <PanelLeft size={20} />
             </button>
             <div className="text-sm font-semibold">LLLMao</div>

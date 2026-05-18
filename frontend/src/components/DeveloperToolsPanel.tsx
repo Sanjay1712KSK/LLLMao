@@ -50,7 +50,7 @@ export function DeveloperToolsPanel() {
             </div>
             <div className="flex gap-1">
               <input className="min-w-0 flex-1 rounded border border-line bg-surface px-2 py-1 text-xs text-ink outline-none" value={command} onChange={(event) => setCommand(event.target.value)} />
-              <button className="rounded bg-accent px-2 text-[#07110e]" type="button" title="Run command" onClick={() => void runCommand(command, cwd, activeWorkspaceId)}>
+              <button className="rounded bg-accent px-2 text-accent-ink" type="button" title="Run command" onClick={() => void runCommand(command, cwd, activeWorkspaceId)}>
                 <Play size={13} />
               </button>
             </div>
@@ -66,7 +66,7 @@ export function DeveloperToolsPanel() {
             </button>
             <div className="max-h-28 space-y-1 overflow-y-auto">
               {gitStatus?.changed_files.slice(0, 8).map((file) => (
-                <button key={`${file.status}-${file.path}`} className="block w-full truncate rounded px-1 py-0.5 text-left text-[11px] text-muted hover:bg-white/5 hover:text-ink" type="button" onClick={() => void loadDiff(cwd, file.path, activeWorkspaceId)}>
+                <button key={`${file.status}-${file.path}`} className="block w-full truncate rounded px-1 py-0.5 text-left text-[11px] text-muted hover:bg-hover hover:text-ink" type="button" onClick={() => void loadDiff(cwd, file.path, activeWorkspaceId)}>
                   {file.status} {file.path}
                 </button>
               ))}

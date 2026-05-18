@@ -43,7 +43,7 @@ export function KnowledgeBasePanel() {
           <FileText size={14} />
           Knowledge
         </div>
-        <button className="rounded p-1 text-muted hover:bg-white/10 hover:text-ink" type="button" title="Refresh documents" onClick={() => refreshDocuments()}>
+        <button className="rounded p-1 text-muted hover:bg-hover hover:text-ink" type="button" title="Refresh documents" onClick={() => refreshDocuments()}>
           <RefreshCw size={14} />
         </button>
       </div>
@@ -75,7 +75,7 @@ export function KnowledgeBasePanel() {
           {activeUploads.map(([name, progress]) => (
             <div key={name} className="rounded-lg border border-line bg-panel p-2">
               <div className="truncate text-xs text-ink">{name.split('-').slice(0, -1).join('-')}</div>
-              <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-white/10">
+              <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-subtle">
                 <div className="h-full bg-accent" style={{ width: `${progress}%` }} />
               </div>
             </div>
@@ -99,7 +99,7 @@ export function KnowledgeBasePanel() {
                 </div>
                 {document.error_message && <div className="mt-1 max-h-8 overflow-hidden text-[11px] text-red-300">{document.error_message}</div>}
                 {document.progress_total > 0 && ['queued', 'indexing'].includes(document.status) && (
-                  <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-white/10">
+                  <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-subtle">
                     <div
                       className="h-full bg-accent"
                       style={{ width: `${Math.round((document.progress_done / document.progress_total) * 100)}%` }}
@@ -111,7 +111,7 @@ export function KnowledgeBasePanel() {
             <div className="mt-2 flex items-center justify-end gap-1">
               {['queued', 'indexing'].includes(document.status) && (
                 <button
-                  className="rounded p-1 text-muted hover:bg-white/10 hover:text-red-300"
+                  className="rounded p-1 text-muted hover:bg-hover hover:text-red-300"
                   type="button"
                   title="Cancel indexing"
                   onClick={() => cancelDocument(document.id)}
@@ -120,7 +120,7 @@ export function KnowledgeBasePanel() {
                 </button>
               )}
               <button
-                className="rounded p-1 text-muted hover:bg-white/10 hover:text-ink"
+                className="rounded p-1 text-muted hover:bg-hover hover:text-ink"
                 type="button"
                 title="Reindex document"
                 onClick={() => reindexDocument(document.id)}
@@ -158,5 +158,5 @@ function statusClass(status: string) {
   if (status === 'indexed') return 'bg-accent/15 text-accent';
   if (status === 'failed') return 'bg-red-500/15 text-red-300';
   if (['queued', 'indexing', 'cancelling'].includes(status)) return 'bg-blue-500/15 text-blue-200';
-  return 'bg-white/10 text-muted';
+  return 'bg-subtle text-muted';
 }

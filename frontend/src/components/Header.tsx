@@ -11,7 +11,7 @@ export function Header() {
   const gpu = stats?.gpu;
 
   return (
-    <header className="flex h-16 shrink-0 items-center justify-between border-b border-line bg-surface/95 px-4 backdrop-blur">
+    <header className="flex h-16 shrink-0 items-center justify-between border-b border-line bg-surface/90 px-4 backdrop-blur">
       <div className="min-w-0">
         <div className="flex items-center gap-2 text-sm font-medium text-ink">
           <Cpu size={17} className="text-accent" />

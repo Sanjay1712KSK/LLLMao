@@ -29,7 +29,7 @@ export function Sidebar() {
     <aside className="flex h-full w-full flex-col border-r border-line bg-panel-soft md:w-72">
       <div className="border-b border-line p-3">
         <button
-          className="flex h-11 w-full items-center justify-center gap-2 rounded-lg bg-accent px-3 text-sm font-semibold text-[#07110e] hover:brightness-110"
+          className="flex h-11 w-full items-center justify-center gap-2 rounded-lg bg-accent px-3 text-sm font-semibold text-accent-ink hover:brightness-110"
           onClick={createChat}
           type="button"
         >

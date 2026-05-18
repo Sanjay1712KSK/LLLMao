@@ -38,7 +38,7 @@ export function ChatInput() {
 
   return (
     <div
-      className={clsx('sticky bottom-0 border-t bg-surface/95 px-4 py-4 backdrop-blur', dragActive ? 'border-accent' : 'border-line')}
+      className={clsx('sticky bottom-0 border-t bg-surface/90 px-4 py-4 backdrop-blur', dragActive ? 'border-accent' : 'border-line')}
       onDragEnter={(event) => {
         event.preventDefault();
         setDragActive(true);

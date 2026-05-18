@@ -32,7 +32,7 @@ export function Notifications() {
                   </details>
                 )}
               </div>
-              <button className="h-7 w-7 rounded-md text-muted hover:bg-white/5 hover:text-ink" type="button" onClick={() => dismiss(notification.id)} title="Dismiss">
+              <button className="h-7 w-7 rounded-md text-muted hover:bg-hover hover:text-ink" type="button" onClick={() => dismiss(notification.id)} title="Dismiss">
                 <X size={15} />
               </button>
             </div>
