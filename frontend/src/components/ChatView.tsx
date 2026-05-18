@@ -43,13 +43,13 @@ export function ChatView() {
             key={message.id}
             className={clsx(
               'flex gap-4 rounded-xl px-3 py-2',
-              message.role === 'assistant' ? 'bg-transparent' : 'bg-white/[0.045]',
+              message.role === 'assistant' ? 'bg-transparent' : 'bg-subtle',
             )}
           >
             <div
               className={clsx(
                 'mt-1 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-xs font-semibold',
-                message.role === 'assistant' ? 'bg-accent text-[#07110e]' : 'bg-white/10 text-ink',
+                message.role === 'assistant' ? 'bg-accent text-accent-ink' : 'bg-subtle text-ink',
               )}
             >
               {message.role === 'assistant' ? 'AI' : 'You'}

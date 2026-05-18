@@ -29,7 +29,7 @@ export function Sidebar() {
   };
 
   return (
-    <aside className="flex h-full w-full flex-col border-r border-line bg-[#0d0f14] md:w-72">
+    <aside className="flex h-full w-full flex-col border-r border-line bg-panel-soft md:w-72">
       <div className="border-b border-line p-3">
         <button
           className="flex h-11 w-full items-center justify-center gap-2 rounded-lg bg-accent px-3 text-sm font-semibold text-[#07110e] hover:brightness-110"
@@ -55,7 +55,7 @@ export function Sidebar() {
             key={chat.id}
             className={clsx(
               'group flex items-center gap-2 rounded-lg px-2 py-2 text-sm',
-              currentChatId === chat.id ? 'bg-white/10 text-ink' : 'text-muted hover:bg-white/5 hover:text-ink',
+              currentChatId === chat.id ? 'bg-subtle text-ink' : 'text-muted hover:bg-hover hover:text-ink',
             )}
           >
             {chat.pinned ? <Pin size={16} className="shrink-0 text-accent" /> : <MessageSquare size={16} className="shrink-0" />}
@@ -77,7 +77,7 @@ export function Sidebar() {
               </button>
             )}
             <button
-              className="rounded p-1 opacity-0 hover:bg-white/10 group-hover:opacity-100"
+              className="rounded p-1 opacity-0 hover:bg-hover group-hover:opacity-100"
               onClick={() => togglePinned(chat.id)}
               type="button"
               title={chat.pinned ? 'Unpin chat' : 'Pin chat'}
@@ -85,7 +85,7 @@ export function Sidebar() {
               {chat.pinned ? <PinOff size={14} /> : <Pin size={14} />}
             </button>
             <button
-              className="rounded p-1 opacity-0 hover:bg-white/10 group-hover:opacity-100"
+              className="rounded p-1 opacity-0 hover:bg-hover group-hover:opacity-100"
               onClick={() => startRename(chat.id, chat.title)}
               type="button"
               title="Rename chat"

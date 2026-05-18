@@ -21,7 +21,7 @@ function Metric({
   alert?: boolean;
 }) {
   return (
-    <div className={clsx("rounded-lg border p-3", alert ? "border-amber-500/50 bg-amber-500/10 text-amber-50" : "border-line bg-white/[0.035]")}>
+    <div className={clsx("rounded-lg border p-3", alert ? "border-amber-500/50 bg-amber-500/10 text-amber-700" : "border-line bg-subtle")}>
       <div className="flex items-center justify-between text-xs text-muted">
         <span>{label}</span>
         <span className={alert ? "text-amber-400" : "text-accent"}>{icon}</span>

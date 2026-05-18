@@ -7,14 +7,20 @@ export default {
     extend: {
       colors: {
         panel: 'var(--panel)',
+        'panel-soft': 'var(--panel-soft)',
         surface: 'var(--surface)',
+        elevated: 'var(--elevated)',
+        code: 'var(--code)',
         ink: 'var(--ink)',
         muted: 'var(--muted)',
         line: 'var(--line)',
+        hover: 'var(--hover)',
+        subtle: 'var(--subtle)',
         accent: 'var(--accent)',
+        'accent-ink': 'var(--accent-ink)',
       },
       boxShadow: {
-        soft: '0 18px 45px rgba(0, 0, 0, 0.22)',
+        soft: '0 18px 45px rgba(0, 0, 0, 0.16)',
       },
     },
   },

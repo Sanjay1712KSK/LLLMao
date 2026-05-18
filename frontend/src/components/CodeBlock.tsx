@@ -17,11 +17,11 @@ export function CodeBlock({ className, children }: CodeBlockProps) {
   };
 
   return (
-    <div className="group my-4 max-w-full overflow-hidden rounded-lg border border-line bg-[#090b0f] shadow-sm">
-      <div className="flex items-center justify-between gap-3 border-b border-line bg-white/[0.035] px-3 py-2 text-xs text-muted">
+    <div className="group my-4 max-w-full overflow-hidden rounded-lg border border-line bg-code shadow-sm">
+      <div className="flex items-center justify-between gap-3 border-b border-line bg-subtle px-3 py-2 text-xs text-muted">
         <span className="min-w-0 truncate font-medium">{language}</span>
         <button
-          className="inline-flex h-8 shrink-0 items-center gap-2 rounded-md px-2 text-muted opacity-90 hover:bg-white/5 hover:text-ink group-hover:opacity-100"
+          className="inline-flex h-8 shrink-0 items-center gap-2 rounded-md px-2 text-muted opacity-90 hover:bg-hover hover:text-ink group-hover:opacity-100"
           onClick={copy}
           type="button"
           title="Copy code"

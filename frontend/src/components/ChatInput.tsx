@@ -61,7 +61,7 @@ export function ChatInput() {
           <div className="flex flex-wrap gap-2">
           <button
             className={`inline-flex items-center gap-2 rounded-lg border px-2.5 py-1.5 text-xs ${
-              useKnowledgeBase ? 'border-accent bg-accent/10 text-accent' : 'border-line text-muted hover:bg-white/5 hover:text-ink'
+              useKnowledgeBase ? 'border-accent bg-accent/10 text-accent' : 'border-line text-muted hover:bg-hover hover:text-ink'
             }`}
             type="button"
             onClick={() => setUseKnowledgeBase(!useKnowledgeBase)}
@@ -72,7 +72,7 @@ export function ChatInput() {
           </button>
           <button
             className={`inline-flex items-center gap-2 rounded-lg border px-2.5 py-1.5 text-xs ${
-              useWorkspace ? 'border-accent bg-accent/10 text-accent' : 'border-line text-muted hover:bg-white/5 hover:text-ink'
+              useWorkspace ? 'border-accent bg-accent/10 text-accent' : 'border-line text-muted hover:bg-hover hover:text-ink'
             }`}
             type="button"
             onClick={() => setUseWorkspace(!useWorkspace)}
@@ -82,7 +82,7 @@ export function ChatInput() {
             Use Workspace
           </button>
           <button
-            className="inline-flex items-center gap-2 rounded-lg border border-line px-2.5 py-1.5 text-xs text-muted hover:bg-white/5 hover:text-ink"
+            className="inline-flex items-center gap-2 rounded-lg border border-line px-2.5 py-1.5 text-xs text-muted hover:bg-hover hover:text-ink"
             type="button"
             onClick={() => fileInputRef.current?.click()}
             title="Attach images"
@@ -166,7 +166,7 @@ export function ChatInput() {
           </button>
         ) : (
           <button
-            className="mb-1 inline-flex h-11 w-11 items-center justify-center rounded-lg bg-accent text-[#07110e] disabled:cursor-not-allowed disabled:opacity-40"
+            className="mb-1 inline-flex h-11 w-11 items-center justify-center rounded-lg bg-accent text-accent-ink disabled:cursor-not-allowed disabled:opacity-40"
             onClick={submit}
             disabled={!value.trim() || !health.ok || !selectedModel}
             type="button"
