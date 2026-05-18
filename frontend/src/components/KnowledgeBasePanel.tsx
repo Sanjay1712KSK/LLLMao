@@ -51,7 +51,7 @@ export function KnowledgeBasePanel() {
       <label
         className={clsx(
           'flex cursor-pointer flex-col items-center justify-center rounded-lg border border-dashed px-3 py-4 text-center text-xs text-muted transition',
-          dragging ? 'border-accent bg-accent/10 text-ink' : 'border-line bg-surface hover:border-accent/70 hover:text-ink',
+          dragging ? 'border-accent bg-accent/10 text-ink' : 'border-line bg-input hover:border-accent/70 hover:text-ink',
         )}
         onDragEnter={(event) => {
           event.preventDefault();

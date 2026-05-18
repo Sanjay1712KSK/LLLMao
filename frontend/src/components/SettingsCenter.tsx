@@ -42,10 +42,10 @@ export function SettingsCenter() {
       </button>
       {settingsOpen && (
         <div className="fixed inset-0 z-50 bg-black/80 p-3 backdrop-blur-sm" onClick={() => setSettingsOpen(false)}>
-          <section className="ml-auto flex h-full w-full max-w-3xl flex-col overflow-hidden rounded-lg border border-line bg-surface shadow-float" onClick={(event) => event.stopPropagation()}>
+          <section className="ml-auto flex h-full w-full max-w-3xl flex-col overflow-hidden rounded-xl border border-line bg-panel-soft shadow-float" onClick={(event) => event.stopPropagation()}>
             <header className="flex items-center justify-between border-b border-line px-5 py-4">
               <div className="flex items-center gap-2 text-base font-semibold text-ink"><MonitorCog size={18} className="text-accent" /> Settings</div>
-              <button className="rounded-md p-2 text-muted hover:bg-panel hover:text-ink" type="button" title="Close settings" onClick={() => setSettingsOpen(false)}><X size={18} /></button>
+              <button className="rounded-md p-2 text-muted hover:bg-hover hover:text-ink" type="button" title="Close settings" onClick={() => setSettingsOpen(false)}><X size={18} /></button>
             </header>
             <div className="min-h-0 flex-1 space-y-5 overflow-y-auto p-5">
               <section>

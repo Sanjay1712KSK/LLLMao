@@ -26,8 +26,8 @@ export const AudioPlayer: React.FC<AudioPlayerProps> = ({ src, durationMs, trans
 
     const ws = WaveSurfer.create({
       container: containerRef.current,
-      waveColor: '#3b82f6', // blue-500
-      progressColor: '#60a5fa', // blue-400
+      waveColor: 'rgba(255, 255, 255, 0.16)',
+      progressColor: '#10a37f',
       cursorColor: 'transparent',
       barWidth: 2,
       barGap: 2,
@@ -104,13 +104,13 @@ export const AudioPlayer: React.FC<AudioPlayerProps> = ({ src, durationMs, trans
   };
 
   return (
-    <div className="flex flex-col gap-2 rounded-xl border border-line bg-surface p-3 max-w-sm w-full">
+    <div className="flex flex-col gap-2 rounded-xl border border-line bg-elevated p-3 max-w-sm w-full">
       <div className="flex items-center gap-3">
         <button
           onClick={togglePlay}
           disabled={!isReady}
           className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full transition-colors ${
-            !isReady ? 'bg-gray-800 text-gray-500' : 'bg-blue-500 text-white hover:bg-blue-600'
+            !isReady ? 'bg-subtle text-tertiary' : 'bg-accent text-accent-ink hover:brightness-110'
           }`}
           title={isPlaying ? "Pause" : "Play"}
         >

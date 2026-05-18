@@ -53,7 +53,7 @@ export function SystemDashboard() {
   const isDegraded = orchestration?.degraded_mode;
 
   return (
-    <aside className={clsx("hidden h-full shrink-0 border-l border-line bg-panel xl:flex xl:flex-col", collapsed ? "w-14" : "w-80")}>
+    <aside className={clsx("hidden h-full shrink-0 border-l border-line bg-panel-soft xl:flex xl:flex-col", collapsed ? "w-14" : "w-80")}>
       <div className="border-b border-line p-4">
         <div className="flex items-center justify-between text-sm font-semibold text-ink">
           <div className="flex items-center gap-2">
