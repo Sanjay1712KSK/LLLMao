@@ -22,3 +22,9 @@ tauri/target/
 screenshots/*
 !screenshots/.gitkeep
 .aider*
+
+# Local AI Chat Uploads and Data
+backend/images/
+backend/uploads/
+backend/database/
+*.pdf
