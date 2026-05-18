@@ -4,7 +4,6 @@ import { useEffect, useState } from 'react';
 
 import { ChatInput } from '../components/ChatInput';
 import { ChatView } from '../components/ChatView';
-import { Header } from '../components/Header';
 import { Notifications } from '../components/Notifications';
 import { SettingsCenter } from '../components/SettingsCenter';
 import { Sidebar } from '../components/Sidebar';
@@ -45,14 +44,13 @@ export default function App() {
             </div>
           </div>
         )}
-        <section className="flex min-w-0 flex-1 flex-col">
-          <div className="flex items-center border-b border-line bg-surface md:hidden">
+        <section className="relative flex min-w-0 flex-1 flex-col bg-grid-pattern">
+          <div className="flex items-center border-b border-line bg-surface/80 backdrop-blur-md md:hidden">
             <button className="m-2 rounded-lg p-2 text-muted hover:bg-hover hover:text-ink" onClick={() => setSidebarOpen(true)} type="button" title="Open sidebar">
               <PanelLeft size={20} />
             </button>
             <div className="text-sm font-semibold">LLLMao</div>
           </div>
-          <Header />
           <ChatView />
           <ChatInput />
         </section>
