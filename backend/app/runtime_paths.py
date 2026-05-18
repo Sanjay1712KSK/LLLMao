@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import os
+import tempfile
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -70,10 +71,27 @@ class RuntimePaths:
 
 def get_runtime_paths() -> RuntimePaths:
     home = Path.home()
+    paths = _build_runtime_paths(home)
+    try:
+        paths.ensure()
+        return paths
+    except OSError:
+        fallback_home = Path(tempfile.gettempdir()) / f"{APP_ID}-{os.getuid()}"
+        paths = _build_runtime_paths(fallback_home, force_home=True)
+        paths.ensure()
+        return paths
+
+
+def _build_runtime_paths(home: Path, force_home: bool = False) -> RuntimePaths:
     data = _xdg_dir("XDG_DATA_HOME", home / ".local" / "share") / APP_ID
     config = _xdg_dir("XDG_CONFIG_HOME", home / ".config") / APP_ID
     cache = _xdg_dir("XDG_CACHE_HOME", home / ".cache") / APP_ID
     state = _xdg_dir("XDG_STATE_HOME", home / ".local" / "state") / APP_ID
+    if force_home:
+        data = home / ".local" / "share" / APP_ID
+        config = home / ".config" / APP_ID
+        cache = home / ".cache" / APP_ID
+        state = home / ".local" / "state" / APP_ID
     paths = RuntimePaths(
         data=data,
         config=config,
@@ -90,5 +108,4 @@ def get_runtime_paths() -> RuntimePaths:
         workspaces=data / "workspaces",
         models_piper=data / "models" / "piper",
     )
-    paths.ensure()
     return paths

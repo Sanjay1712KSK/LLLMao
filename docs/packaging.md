@@ -16,6 +16,18 @@ Recommended future production path:
 $XDG_DATA_HOME/myownrtxchat/workspace.sqlite3
 ```
 
+Phase 9 now uses the production application id `lllmao` for XDG runtime data:
+
+```text
+$XDG_DATA_HOME/lllmao/database/workspace.sqlite3
+$XDG_CONFIG_HOME/lllmao/settings.json
+$XDG_CACHE_HOME/lllmao/embeddings
+$XDG_STATE_HOME/lllmao/logs/backend.log
+```
+
+If a confined launcher reports a read-only home directory, the backend falls
+back to a per-user temporary runtime base instead of failing during import.
+
 ## Constraints
 
 - Do not bundle Ollama model weights.
