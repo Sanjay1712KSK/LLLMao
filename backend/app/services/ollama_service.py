@@ -49,6 +49,23 @@ class OllamaService:
             )
         return [model for model in models if model["name"]]
 
+    async def validate_model(self, model: str) -> dict:
+        models = await self.list_models()
+        match = next((item for item in models if item["name"] == model), None)
+        if match is None:
+            raise OllamaUnavailableError(f"Model '{model}' is not installed in local Ollama.")
+        await self.warmup_model(model)
+        return match
+
+    async def warmup_model(self, model: str) -> None:
+        payload = {"model": model, "prompt": "ok", "stream": False, "options": {"num_predict": 1}}
+        try:
+            async with httpx.AsyncClient(timeout=30.0) as client:
+                response = await client.post(f"{self.base_url}/api/generate", json=payload)
+                response.raise_for_status()
+        except httpx.HTTPError as exc:
+            raise OllamaUnavailableError(f"Model warmup failed for '{model}': {exc}") from exc
+
     def _capabilities(self, name: str, details: dict) -> list[str]:
         lowered = name.lower()
         families = [str(item).lower() for item in details.get("families") or []]

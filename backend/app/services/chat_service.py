@@ -1,4 +1,4 @@
-from sqlalchemy import func, select
+from sqlalchemy import delete, func, select
 from sqlalchemy.orm import Session
 
 from app.models import Chat, Message
@@ -44,6 +44,13 @@ def delete_chat(db: Session, chat_id: int) -> bool:
     db.delete(chat)
     db.commit()
     return True
+
+
+def delete_all_chats(db: Session) -> int:
+    count = len(list_chats(db))
+    db.execute(delete(Chat))
+    db.commit()
+    return count
 
 
 def list_messages(db: Session, chat_id: int) -> list[Message]:

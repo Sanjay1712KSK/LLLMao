@@ -9,12 +9,13 @@ from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from app.config import get_settings
 from app.database.init_db import init_db
-from app.routers import audio, chat, developer_tools, health, memory, models, multimodal, orchestration, rag, stats, workspace
+from app.routers import audio, chat, developer_tools, health, memory, models, multimodal, orchestration, rag, runtime, stats, workspace
 from app.services.exception_handlers import http_exception_handler, unhandled_exception_handler, validation_exception_handler
 from app.services.health import dependency_checker
+from app.services.logging import configure_logging
 
 settings = get_settings()
-logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s %(message)s")
+configure_logging()
 
 
 @asynccontextmanager
@@ -58,3 +59,4 @@ app.include_router(workspace.router, prefix=settings.api_prefix)
 app.include_router(multimodal.router, prefix=settings.api_prefix)
 app.include_router(orchestration.router, prefix=settings.api_prefix)
 app.include_router(audio.router, prefix=settings.api_prefix)
+app.include_router(runtime.router, prefix=settings.api_prefix)

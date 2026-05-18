@@ -36,6 +36,12 @@ def remove_chat(chat_id: int, db: Session = Depends(get_db)) -> Response:
     return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 
+@router.delete("/chats", status_code=status.HTTP_204_NO_CONTENT, response_class=Response)
+def remove_all_chats(db: Session = Depends(get_db)) -> Response:
+    chat_service.delete_all_chats(db)
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
+
+
 @router.get("/messages/{chat_id}", response_model=list[MessageRead])
 def get_messages(chat_id: int, db: Session = Depends(get_db)) -> list[MessageRead]:
     if chat_service.get_chat(db, chat_id) is None:
