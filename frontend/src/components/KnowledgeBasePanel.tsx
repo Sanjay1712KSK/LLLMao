@@ -157,6 +157,6 @@ export function KnowledgeBasePanel() {
 function statusClass(status: string) {
   if (status === 'indexed') return 'bg-accent/15 text-accent';
   if (status === 'failed') return 'bg-red-500/15 text-red-300';
-  if (['queued', 'indexing', 'cancelling'].includes(status)) return 'bg-blue-500/15 text-blue-200';
+  if (['queued', 'indexing', 'cancelling'].includes(status)) return 'bg-accent/15 text-accent';
   return 'bg-subtle text-muted';
 }
