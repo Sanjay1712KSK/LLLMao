@@ -57,6 +57,7 @@ parts:
   frontend:
     plugin: npm
     source: frontend
+    npm-include-node: true
     npm-node-version: "20.10.0"
     build-packages:
       - curl
