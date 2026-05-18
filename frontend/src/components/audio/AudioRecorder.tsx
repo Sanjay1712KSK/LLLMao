@@ -10,7 +10,7 @@ type AudioRecorderProps = {
   onTranscript: (transcript: string) => Promise<void> | void;
 };
 
-const preferredMimeTypes = ['audio/webm;codecs=opus', 'audio/webm', 'audio/ogg;codecs=opus', 'audio/mp4'];
+const preferredMimeTypes = ['audio/webm;codecs=opus', 'audio/webm', 'audio/ogg;codecs=opus', 'audio/mp4', 'audio/wav', 'audio/aac'];
 
 export const AudioRecorder: React.FC<AudioRecorderProps> = ({ onTranscript }) => {
   const { state, setState, silenceDetectionEnabled, silenceSensitivity, silenceTimeoutMs, setLatencies } = useAudioStore();
@@ -35,7 +35,9 @@ export const AudioRecorder: React.FC<AudioRecorderProps> = ({ onTranscript }) =>
 
   const cleanup = () => {
     if (streamRef.current) {
-      streamRef.current.getTracks().forEach((track) => track.stop());
+      streamRef.current.getTracks().forEach((track) => {
+        track.stop();
+      });
       streamRef.current = null;
       setStream(null);
     }
@@ -82,7 +84,8 @@ export const AudioRecorder: React.FC<AudioRecorderProps> = ({ onTranscript }) =>
       const controller = new AbortController();
       const timeout = window.setTimeout(() => controller.abort(), 120000);
       const formData = new FormData();
-      const extension = blob.type.includes('ogg') ? 'ogg' : blob.type.includes('mp4') ? 'm4a' : 'webm';
+      const mimeType = blob.type || 'audio/webm';
+      const extension = mimeType.includes('ogg') ? 'ogg' : mimeType.includes('mp4') ? 'm4a' : mimeType.includes('wav') ? 'wav' : 'webm';
       formData.append('file', blob, `recording.${extension}`);
       const { currentChatId } = useChatStore.getState();
       if (currentChatId) formData.append('chat_id', currentChatId.toString());
@@ -117,6 +120,10 @@ export const AudioRecorder: React.FC<AudioRecorderProps> = ({ onTranscript }) =>
     try {
       setErrorMessage(null);
       if (!navigator.mediaDevices?.getUserMedia || typeof MediaRecorder === 'undefined') {
+        const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+        if (!isLocalhost && window.location.protocol !== 'https:') {
+           throw new Error('Microphone access requires a secure context (HTTPS or localhost). Please use http://localhost:1420 instead of your local IP.');
+        }
         throw new Error('Voice recording is not supported by this browser runtime.');
       }
       const mediaStream = await navigator.mediaDevices.getUserMedia({ audio: true });
@@ -134,14 +141,17 @@ export const AudioRecorder: React.FC<AudioRecorderProps> = ({ onTranscript }) =>
       mediaRecorder.onerror = () => fail('The recording device stopped unexpectedly.');
       mediaRecorder.onstop = () => {
         recordingRef.current = false;
+        
+        // Ensure tracks are aggressively stopped immediately when recording stops
+        cleanup();
+
         const audioBlob = new Blob(audioChunksRef.current, { type: mediaRecorder.mimeType || 'audio/webm' });
-        if (!audioBlob.size) {
-          fail('No audio was captured. Check microphone permissions and try again.');
-          cleanup();
+        if (!audioBlob.size || audioBlob.size === 0) {
+          fail('No audio was captured. Check microphone permissions or input volume and try again.');
           return;
         }
         setLastBlob(audioBlob);
-        void processAudio(audioBlob).finally(cleanup);
+        void processAudio(audioBlob);
       };
 
       if (silenceDetectionEnabled) {
@@ -158,7 +168,13 @@ export const AudioRecorder: React.FC<AudioRecorderProps> = ({ onTranscript }) =>
       if (silenceDetectionEnabled) monitorSilence();
     } catch (error) {
       cleanup();
-      fail(error instanceof Error ? error.message : 'Microphone permission was denied or unavailable.');
+      let msg = 'Microphone permission was denied or unavailable.';
+      if (error instanceof Error) {
+        if (error.name === 'NotAllowedError') msg = 'Microphone permission was denied. Please allow access in your browser or OS settings.';
+        else if (error.name === 'NotFoundError') msg = 'No microphone device was detected on your system.';
+        else msg = error.message;
+      }
+      fail(msg);
     }
   };
 

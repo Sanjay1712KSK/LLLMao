@@ -47,6 +47,7 @@ export const AudioPlayer: React.FC<AudioPlayerProps> = ({ src, durationMs, trans
     });
 
     ws.on('play', () => {
+      window.dispatchEvent(new CustomEvent('audio-play', { detail: src }));
       setIsPlaying(true);
       setState('PLAYING_AUDIO');
     });
@@ -77,6 +78,18 @@ export const AudioPlayer: React.FC<AudioPlayerProps> = ({ src, durationMs, trans
       }
     }
   }, [state, isPlaying]);
+
+  useEffect(() => {
+    const handleOtherPlay = (e: CustomEvent) => {
+      if (e.detail !== src && isPlaying && wavesurferRef.current) {
+        wavesurferRef.current.pause();
+      }
+    };
+    window.addEventListener('audio-play', handleOtherPlay as EventListener);
+    return () => {
+      window.removeEventListener('audio-play', handleOtherPlay as EventListener);
+    };
+  }, [src, isPlaying]);
 
   const togglePlay = () => {
     if (!wavesurferRef.current) return;
