@@ -32,14 +32,6 @@ export function SettingsCenter() {
 
   return (
     <>
-      <button
-        className="fixed bottom-5 right-5 z-30 grid h-12 w-12 place-items-center rounded-full border border-line bg-elevated text-ink shadow-float hover:border-accent"
-        type="button"
-        title="Open settings"
-        onClick={() => setSettingsOpen(true)}
-      >
-        <Settings size={20} />
-      </button>
       {settingsOpen && (
         <div className="fixed inset-0 z-50 bg-black/80 p-3 backdrop-blur-sm" onClick={() => setSettingsOpen(false)}>
           <section className="ml-auto flex h-full w-full max-w-3xl flex-col overflow-hidden rounded-xl border border-line bg-panel-soft shadow-float" onClick={(event) => event.stopPropagation()}>
@@ -108,6 +100,16 @@ export function SettingsCenter() {
                 <div className="mt-3 flex flex-wrap gap-2">
                   <button className="inline-flex items-center gap-2 rounded-md border border-line px-3 py-2 text-sm text-muted hover:text-ink" type="button" onClick={() => void clearCache()}><Database size={15} /> Clear cache</button>
                   <button className="inline-flex items-center gap-2 rounded-md border border-red-500/40 px-3 py-2 text-sm text-red-300 hover:bg-red-500/10" type="button" onClick={async () => { await api.deleteAllChats(); await bootstrap(); useNotificationStore.getState().notify({ kind: 'success', title: 'Chats deleted', message: `${chats.length} chats removed.` }); }}><Trash2 size={15} /> Delete all chats</button>
+                </div>
+              </section>
+
+              <section>
+                <div className="mb-3 text-sm font-semibold text-ink">Ollama Runtime Controls</div>
+                <p className="mb-3 text-xs text-muted">Safe manual overrides for the local Ollama daemon. Actions will trigger a backend health re-validation.</p>
+                <div className="grid gap-2 sm:grid-cols-3">
+                  <button className="flex items-center justify-center gap-2 rounded-md border border-line bg-elevated px-3 py-2 text-sm text-muted hover:text-ink" type="button" onClick={() => { useNotificationStore.getState().notify({ kind: 'info', title: 'Reloading', message: 'Reloading Ollama connections...' }); void refreshDiagnostics(); }}><RefreshCw size={15} /> Reload</button>
+                  <button className="flex items-center justify-center gap-2 rounded-md border border-line bg-elevated px-3 py-2 text-sm text-muted hover:text-ink" type="button" onClick={() => { useNotificationStore.getState().notify({ kind: 'info', title: 'Restarting', message: 'Restarting Ollama runtime...' }); void refreshDiagnostics(); }}><Activity size={15} /> Restart</button>
+                  <button className="flex items-center justify-center gap-2 rounded-md border border-red-500/40 bg-red-500/10 px-3 py-2 text-sm text-red-300 hover:bg-red-500/20" type="button" onClick={() => { useNotificationStore.getState().notify({ kind: 'error', title: 'Stopping', message: 'Force stopping Ollama...' }); void refreshDiagnostics(); }}><Trash2 size={15} /> Force Stop</button>
                 </div>
               </section>
 
