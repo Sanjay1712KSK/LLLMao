@@ -40,7 +40,7 @@ export function ChatView() {
     <main className="min-h-0 flex-1 overflow-y-auto scroll-smooth px-4 py-8">
       <div className="mx-auto max-w-4xl space-y-5">
         {!messages.length && (
-          <EmptyState workspaceName={activeWorkspace?.name} />
+          <EmptyState workspaceName={activeWorkspace?.name} username={username !== 'You' ? username : ''} />
         )}
         {messages.map((message) => (
           <article
@@ -123,7 +123,7 @@ export function ChatView() {
   );
 }
 
-function EmptyState({ workspaceName }: { workspaceName?: string }) {
+function EmptyState({ workspaceName, username }: { workspaceName?: string; username?: string }) {
   const cards = [
     { icon: TerminalSquare, title: 'Ask about your ROS2 workspace', body: workspaceName ? `Using ${workspaceName} when workspace mode is enabled.` : 'Connect a workspace from the sidebar to ground answers in code.' },
     { icon: FileText, title: 'Upload PDFs for contextual retrieval', body: 'Use knowledge base mode for local document-backed answers.' },
@@ -136,7 +136,7 @@ function EmptyState({ workspaceName }: { workspaceName?: string }) {
       <div className="mb-8 flex h-24 w-24 items-center justify-center rounded-full bg-accent/10 shadow-[0_0_50px_rgba(235,208,26,0.4)] border border-accent/30">
          <div className="h-12 w-12 rounded-full bg-accent shadow-[0_0_30px_rgba(235,208,26,0.8)] animate-[pulse_4s_ease-in-out_infinite]" />
       </div>
-      <h1 className="text-4xl font-semibold tracking-tight text-ink">Welcome back <span className="text-accent">{useSettingsStore.getState().diagnostics?.username || 'Alex'}</span>!</h1>
+      <h1 className="text-4xl font-semibold tracking-tight text-ink">Welcome back{username ? <span className="text-accent"> {username}</span> : ''}!</h1>
       <p className="mt-4 max-w-2xl text-base leading-6 text-muted">Which workspace or project do you want to analyze today?</p>
       <div className="mt-12 grid gap-4 sm:grid-cols-2 max-w-3xl w-full text-left">
         {cards.map((card) => {
