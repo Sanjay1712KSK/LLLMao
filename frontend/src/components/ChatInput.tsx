@@ -38,7 +38,7 @@ export function ChatInput() {
 
   return (
     <div
-      className={clsx('sticky bottom-0 border-t bg-surface/90 px-4 py-4 backdrop-blur', dragActive ? 'border-accent' : 'border-line')}
+      className={clsx('sticky bottom-0 border-t bg-surface/80 px-4 py-5 backdrop-blur', dragActive ? 'border-accent' : 'border-line')}
       onDragEnter={(event) => {
         event.preventDefault();
         setDragActive(true);
@@ -56,7 +56,7 @@ export function ChatInput() {
         addImages(Array.from(event.dataTransfer.files));
       }}
     >
-      <div className={clsx('mx-auto max-w-4xl rounded-xl border bg-panel p-2 shadow-soft transition-colors', dragActive ? 'border-accent bg-accent/5' : 'border-line')}>
+      <div className={clsx('mx-auto max-w-4xl rounded-2xl border bg-elevated p-2.5 shadow-float transition-colors', dragActive ? 'border-accent bg-accent/5' : 'border-line')}>
         <div className="mb-2 flex items-center justify-between px-2">
           <div className="flex flex-wrap gap-2">
           <button
@@ -109,7 +109,7 @@ export function ChatInput() {
         {pendingImages.length > 0 && (
           <div className="mb-2 flex gap-3 overflow-x-auto px-2 pb-1">
             {pendingImages.map((image, index) => (
-              <div key={image.previewUrl} className="group relative h-24 w-36 shrink-0 overflow-hidden rounded-lg border border-line bg-surface">
+              <div key={image.previewUrl} className="group relative h-24 w-36 shrink-0 overflow-hidden rounded-lg border border-line bg-input">
                 <img className="h-full w-full object-cover" src={image.previewUrl} alt={image.file.name} />
                 <button
                   className="absolute right-1 top-1 rounded-md bg-black/75 p-1 text-white opacity-90 hover:bg-red-500"
@@ -124,7 +124,7 @@ export function ChatInput() {
                     <span className="truncate">{image.error || image.status}</span>
                     {image.status === 'uploading' && <span>{image.progress}%</span>}
                   </div>
-                  {image.status === 'uploading' && <div className="mt-1 h-1 rounded bg-white/20"><div className="h-full rounded bg-accent" style={{ width: `${image.progress}%` }} /></div>}
+                  {image.status === 'uploading' && <div className="mt-1 h-1 rounded bg-subtle"><div className="h-full rounded bg-accent" style={{ width: `${image.progress}%` }} /></div>}
                 </div>
               </div>
             ))}
@@ -143,7 +143,7 @@ export function ChatInput() {
         )}
         <div className="flex items-end gap-3">
         <textarea
-          className="max-h-48 min-h-[52px] flex-1 resize-none bg-transparent px-3 py-3 text-sm leading-6 text-ink outline-none placeholder:text-muted"
+          className="max-h-48 min-h-[56px] flex-1 resize-none bg-transparent px-3 py-3 text-sm leading-6 text-ink outline-none placeholder:text-tertiary"
           placeholder={health.ok ? 'Ask a local model...' : 'Start Ollama, then refresh the app'}
           value={value}
           disabled={!health.ok || !selectedModel}

@@ -60,7 +60,7 @@ export default function App() {
         {telemetryEnabled && <SystemDashboard />}
       </div>
       {devToolsEnabled && (
-        <div className={clsx("fixed bottom-0 left-0 right-0 z-40 border-t border-line bg-panel shadow-soft md:left-72", telemetryEnabled ? "xl:right-14" : "xl:right-0")}>
+        <div className={clsx("fixed bottom-0 left-0 right-0 z-40 border-t border-line bg-panel-soft shadow-float md:left-72", telemetryEnabled ? "xl:right-14" : "xl:right-0")}>
           <button
             className="flex h-10 w-full items-center justify-between px-4 text-sm font-medium text-ink hover:bg-hover"
             type="button"

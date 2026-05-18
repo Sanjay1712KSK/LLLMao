@@ -36,7 +36,7 @@ export function Sidebar() {
           <Plus size={17} />
           New Chat
         </button>
-        <div className="mt-3 flex h-10 items-center gap-2 rounded-lg border border-line bg-surface px-3 text-muted">
+        <div className="mt-3 flex h-10 items-center gap-2 rounded-lg border border-line bg-input px-3 text-muted">
           <Search size={15} />
           <input
             className="min-w-0 flex-1 bg-transparent text-sm text-ink outline-none placeholder:text-muted"
@@ -58,7 +58,7 @@ export function Sidebar() {
             {chat.pinned ? <Pin size={16} className="shrink-0 text-accent" /> : <MessageSquare size={16} className="shrink-0" />}
             {editingId === chat.id ? (
               <input
-                className="min-w-0 flex-1 rounded border border-line bg-surface px-2 py-1 text-sm text-ink outline-none"
+                className="min-w-0 flex-1 rounded border border-line bg-input px-2 py-1 text-sm text-ink outline-none"
                 autoFocus
                 value={draft}
                 onChange={(event) => setDraft(event.target.value)}

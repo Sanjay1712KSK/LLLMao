@@ -17,7 +17,7 @@ export function CodeBlock({ className, children }: CodeBlockProps) {
   };
 
   return (
-    <div className="group my-4 max-w-full overflow-hidden rounded-lg border border-line bg-code shadow-sm">
+    <div className="group my-4 max-w-full overflow-hidden rounded-xl border border-line bg-code shadow-sm">
       <div className="flex items-center justify-between gap-3 border-b border-line bg-subtle px-3 py-2 text-xs text-muted">
         <span className="min-w-0 truncate font-medium">{language}</span>
         <button

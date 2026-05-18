@@ -19,7 +19,7 @@ export function ChatView() {
   if (!health.ok) {
     return (
       <main className="flex min-h-0 flex-1 items-center justify-center p-6">
-        <div className="max-w-xl rounded-lg border border-line bg-panel p-6 text-center shadow-soft">
+        <div className="max-w-xl rounded-xl border border-line bg-panel p-6 text-center shadow-soft">
           <h1 className="text-xl font-semibold text-ink">Local runtime needs attention</h1>
           <p className="mt-3 text-sm leading-6 text-muted">
             Start Ollama and confirm it is serving at <code>http://localhost:11434</code>. LLLMao will use installed local models only.
@@ -33,8 +33,8 @@ export function ChatView() {
   }
 
   return (
-    <main className="min-h-0 flex-1 overflow-y-auto scroll-smooth px-4 py-6">
-      <div className="mx-auto max-w-4xl space-y-6">
+    <main className="min-h-0 flex-1 overflow-y-auto scroll-smooth px-4 py-8">
+      <div className="mx-auto max-w-4xl space-y-7">
         {!messages.length && (
           <EmptyState workspaceName={activeWorkspace?.name} />
         )}
@@ -42,7 +42,7 @@ export function ChatView() {
           <article
             key={message.id}
             className={clsx(
-              'flex gap-4 rounded-xl px-3 py-2',
+              'flex gap-4 rounded-2xl px-3 py-3',
               message.role === 'assistant' ? 'bg-transparent' : 'bg-subtle',
             )}
           >
@@ -63,7 +63,7 @@ export function ChatView() {
                       {message.sources.map((source) => (
                         <span
                           key={sourceKey(source)}
-                          className="rounded-lg border border-line bg-panel px-2 py-1 text-xs text-muted"
+                          className="rounded-lg border border-line bg-elevated px-2 py-1 text-xs text-muted"
                           title={sourceTitle(source)}
                         >
                           {sourceLabel(source)}
@@ -128,7 +128,7 @@ function EmptyState({ workspaceName }: { workspaceName?: string }) {
         {cards.map((card) => {
           const Icon = card.icon;
           return (
-            <div key={card.title} className="rounded-lg border border-line bg-panel p-4">
+            <div key={card.title} className="rounded-xl border border-line bg-panel p-4">
               <div className="flex items-center gap-2 text-sm font-medium text-ink">
                 <Icon size={16} className="text-accent" />
                 {card.title}
