@@ -20,6 +20,7 @@ export function ChatInput() {
     useWorkspace,
     setUseKnowledgeBase,
     setUseWorkspace,
+    isModelLoading,
   } = useChatStore();
   const { pendingImages, addImages, removeImage, error, errorDetails } = useMultimodalStore();
 
@@ -143,10 +144,10 @@ export function ChatInput() {
         )}
         <div className="flex items-end gap-3">
         <textarea
-          className="max-h-48 min-h-[56px] flex-1 resize-none bg-transparent px-3 py-3 text-sm leading-6 text-ink outline-none placeholder:text-tertiary"
-          placeholder={health.ok ? 'Ask a local model...' : 'Start Ollama, then refresh the app'}
+          className="max-h-48 min-h-[56px] flex-1 resize-none bg-transparent px-3 py-3 text-sm leading-6 text-ink outline-none placeholder:text-tertiary disabled:opacity-50"
+          placeholder={!health.ok ? 'Start Ollama, then refresh the app' : isModelLoading ? 'Warming up model...' : 'Ask a local model...'}
           value={value}
-          disabled={!health.ok || !selectedModel}
+          disabled={!health.ok || !selectedModel || isModelLoading}
           onChange={(event) => setValue(event.target.value)}
           onKeyDown={(event) => {
             if (event.key === 'Enter' && !event.shiftKey) {
@@ -166,9 +167,9 @@ export function ChatInput() {
           </button>
         ) : (
           <button
-            className="mb-1 inline-flex h-11 w-11 items-center justify-center rounded-lg bg-accent text-accent-ink disabled:cursor-not-allowed disabled:opacity-40"
+            className="mb-1 inline-flex h-11 w-11 items-center justify-center rounded-lg bg-accent text-accent-ink disabled:cursor-not-allowed disabled:opacity-40 transition-opacity"
             onClick={submit}
-            disabled={!value.trim() || !health.ok || !selectedModel}
+            disabled={!value.trim() || !health.ok || !selectedModel || isModelLoading}
             type="button"
             title="Send message"
           >

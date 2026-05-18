@@ -287,6 +287,7 @@ export const useChatStore = create<ChatState>((set, get) => ({
         const assistantMsg = hydratedMessages[hydratedMessages.length - 1];
         
         if (assistantMsg && assistantMsg.role === 'assistant' && assistantMsg.content && typeof assistantMsg.id === 'number') {
+            useAudioStore.getState().setAutoPlayMessageId(assistantMsg.id);
             fetch(`${API_BASE_URL}/audio/generate`, {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },

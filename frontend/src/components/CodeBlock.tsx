@@ -3,15 +3,17 @@ import { useState } from 'react';
 
 type CodeBlockProps = {
   className?: string;
-  children: string;
+  children: React.ReactNode;
+  rawText?: string;
 };
 
-export function CodeBlock({ className, children }: CodeBlockProps) {
+export function CodeBlock({ className, children, rawText }: CodeBlockProps) {
   const [copied, setCopied] = useState(false);
   const language = className?.replace('language-', '') || 'text';
 
   const copy = async () => {
-    await navigator.clipboard.writeText(children);
+    const textToCopy = rawText ?? (typeof children === 'string' ? children : '');
+    await navigator.clipboard.writeText(textToCopy);
     setCopied(true);
     window.setTimeout(() => setCopied(false), 1300);
   };

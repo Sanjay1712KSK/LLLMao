@@ -5,6 +5,7 @@ import { useAutoScroll } from '../hooks/useAutoScroll';
 import { useChatStore } from '../store/chatStore';
 import { useWorkspaceStore } from '../store/workspaceStore';
 import { useSettingsStore } from '../store/settingsStore';
+import { useAudioStore } from '../store/audioStore';
 import type { RetrievalSource } from '../types/api';
 import { API_BASE_URL } from '../services/api';
 import { MarkdownMessage } from './MarkdownMessage';
@@ -13,6 +14,7 @@ import { AudioPlayer } from './audio/AudioPlayer';
 export function ChatView() {
   const { messages, isStreaming, health, error, bootstrap, selectedModel } = useChatStore();
   const username = useSettingsStore((state) => state.diagnostics?.username) || 'You';
+  const autoPlayMessageId = useAudioStore((state) => state.autoPlayMessageId);
   const activeWorkspaceId = useWorkspaceStore((state) => state.activeWorkspaceId);
   const workspaces = useWorkspaceStore((state) => state.workspaces);
   const activeWorkspace = workspaces.find((workspace) => workspace.id === activeWorkspaceId);
@@ -83,6 +85,7 @@ export function ChatView() {
                               src={`${API_BASE_URL}/media/${message.chat_id}/${attachment.id}`}
                               durationMs={attachment.duration_ms || undefined}
                               transcript={attachment.transcript || undefined}
+                              autoPlay={message.id === autoPlayMessageId}
                             />
                           );
                         }

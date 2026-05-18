@@ -25,6 +25,7 @@ interface AudioStoreState {
   state: AudioState;
   voices: PiperVoice[];
   activeModelId: string | null;
+  autoPlayMessageId: number | string | null;
   downloadProgress: Record<string, number>; // model_id -> percent
   
   // Settings
@@ -41,6 +42,7 @@ interface AudioStoreState {
   
   // Actions
   setState: (state: AudioState) => void;
+  setAutoPlayMessageId: (id: number | string | null) => void;
   fetchVoices: () => Promise<void>;
   downloadVoice: (model_id: string, onnx_url: string, json_url: string) => Promise<void>;
   setActiveModel: (model_id: string) => void;
@@ -56,6 +58,7 @@ export const useAudioStore = create<AudioStoreState>((set, get) => ({
   state: 'IDLE',
   voices: [],
   activeModelId: null,
+  autoPlayMessageId: null,
   downloadProgress: {},
   
   silenceDetectionEnabled: true,
@@ -65,6 +68,7 @@ export const useAudioStore = create<AudioStoreState>((set, get) => ({
   latencies: {},
   
   setState: (state) => set({ state }),
+  setAutoPlayMessageId: (id) => set({ autoPlayMessageId: id }),
   
   fetchVoices: async () => {
     try {

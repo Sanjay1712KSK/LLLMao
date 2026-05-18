@@ -1,4 +1,4 @@
-import { memo } from 'react';
+import React, { memo } from 'react';
 import ReactMarkdown from 'react-markdown';
 import rehypeHighlight from 'rehype-highlight';
 import remarkGfm from 'remark-gfm';
@@ -9,6 +9,15 @@ type MarkdownMessageProps = {
   content: string;
 };
 
+function extractText(node: React.ReactNode): string {
+  if (typeof node === 'string' || typeof node === 'number') return String(node);
+  if (Array.isArray(node)) return node.map(extractText).join('');
+  if (React.isValidElement(node) && node.props && 'children' in node.props) {
+    return extractText(node.props.children as React.ReactNode);
+  }
+  return '';
+}
+
 function MarkdownMessageComponent({ content }: MarkdownMessageProps) {
   return (
     <ReactMarkdown
@@ -17,8 +26,8 @@ function MarkdownMessageComponent({ content }: MarkdownMessageProps) {
       rehypePlugins={[rehypeHighlight]}
       components={{
         code({ className, children, ...props }) {
-          const text = String(children).replace(/\n$/, '');
-          const isBlock = Boolean(className) || text.includes('\n');
+          const rawText = extractText(children).replace(/\n$/, '');
+          const isBlock = Boolean(className) || rawText.includes('\n');
           if (!isBlock) {
             return (
               <code className="rounded bg-subtle px-1.5 py-0.5 text-[0.92em] text-ink" {...props}>
@@ -26,7 +35,7 @@ function MarkdownMessageComponent({ content }: MarkdownMessageProps) {
               </code>
             );
           }
-          return <CodeBlock className={className}>{text}</CodeBlock>;
+          return <CodeBlock className={className} rawText={rawText}>{children}</CodeBlock>;
         },
       }}
     >

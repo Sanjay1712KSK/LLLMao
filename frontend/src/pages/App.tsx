@@ -4,7 +4,6 @@ import { useEffect, useState } from 'react';
 
 import { ChatInput } from '../components/ChatInput';
 import { ChatView } from '../components/ChatView';
-import { DeveloperToolsPanel } from '../components/DeveloperToolsPanel';
 import { Header } from '../components/Header';
 import { Notifications } from '../components/Notifications';
 import { SettingsCenter } from '../components/SettingsCenter';
@@ -21,8 +20,8 @@ export default function App() {
   const stopPolling = useSystemStore((state) => state.stopPolling);
   const telemetryEnabled = useSettingsStore((state) => state.telemetryEnabled);
   const devToolsEnabled = useSettingsStore((state) => state.devToolsEnabled);
-  const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [devToolsOpen, setDevToolsOpen] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(false); // Mobile drawer
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false); // Desktop icon rail
 
   useEffect(() => {
     void bootstrap();
@@ -36,13 +35,13 @@ export default function App() {
       <AudioModelModal />
       <SettingsCenter />
       <div className="flex h-full">
-        <div className="hidden md:block">
-          <Sidebar />
+        <div className={clsx("hidden h-full transition-all duration-300 md:block", sidebarCollapsed ? "w-16" : "w-72")}>
+          <Sidebar collapsed={sidebarCollapsed} onToggle={() => setSidebarCollapsed(!sidebarCollapsed)} />
         </div>
         {sidebarOpen && (
           <div className="fixed inset-0 z-40 bg-black/80 md:hidden" onClick={() => setSidebarOpen(false)}>
             <div className="h-full w-80 max-w-[85vw]" onClick={(event) => event.stopPropagation()}>
-              <Sidebar />
+              <Sidebar collapsed={false} onToggle={() => {}} />
             </div>
           </div>
         )}
@@ -59,23 +58,6 @@ export default function App() {
         </section>
         {telemetryEnabled && <SystemDashboard />}
       </div>
-      {devToolsEnabled && (
-        <div className={clsx("fixed bottom-0 left-0 right-0 z-40 border-t border-line bg-panel-soft shadow-float md:left-72", telemetryEnabled ? "xl:right-14" : "xl:right-0")}>
-          <button
-            className="flex h-10 w-full items-center justify-between px-4 text-sm font-medium text-ink hover:bg-hover"
-            type="button"
-            onClick={() => setDevToolsOpen(!devToolsOpen)}
-          >
-            <span className="inline-flex items-center gap-2"><TerminalSquare size={16} className="text-accent" /> Developer tools</span>
-            <ChevronDown className={devToolsOpen ? '' : 'rotate-180'} size={16} />
-          </button>
-          {devToolsOpen && (
-            <div className="max-h-[42vh] overflow-y-auto">
-              <DeveloperToolsPanel />
-            </div>
-          )}
-        </div>
-      )}
     </div>
   );
 }
