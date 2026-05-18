@@ -22,6 +22,7 @@ class HealthRead(BaseModel):
     uploads: bool = False
     backend_ok: bool = True
     ollama_ok: bool
+    ollama_installed: bool = False
     database_ok: bool
     dependencies: dict[str, dict[str, str | bool]] = {}
 

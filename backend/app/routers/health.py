@@ -1,3 +1,4 @@
+import shutil
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 
@@ -35,6 +36,7 @@ async def health(db: Session = Depends(get_db)) -> HealthRead:
         database=database_status.ok,
         uploads=uploads_status.ok,
         ollama_ok=ok,
+        ollama_installed=shutil.which("ollama") is not None,
         database_ok=database_status.ok,
         dependencies={
             "chromadb": {"ok": chroma_status.ok, "message": chroma_status.message},

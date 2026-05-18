@@ -8,6 +8,7 @@ export type OllamaHealth = {
   database?: boolean;
   backend_ok: boolean;
   ollama_ok: boolean;
+  ollama_installed: boolean;
   database_ok: boolean;
   dependencies?: Record<string, { ok: boolean; message: string }>;
 };
@@ -181,6 +182,7 @@ export type SystemStats = {
   active_model?: string | null;
   backend_ok: boolean;
   ollama_ok: boolean;
+  ollama_installed: boolean;
   database_ok: boolean;
 };
 
