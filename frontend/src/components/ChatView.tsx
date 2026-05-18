@@ -46,19 +46,25 @@ export function ChatView() {
           <article
             key={message.id}
             className={clsx(
-              'flex gap-4 rounded-2xl px-4 py-3',
-              message.role === 'assistant' ? 'bg-transparent' : 'bg-subtle',
+              'flex flex-col gap-3 rounded-3xl px-6 py-8 transition-colors',
+              message.role === 'assistant' ? 'bg-transparent' : 'bg-elevated/30 border border-line shadow-float backdrop-blur-md',
             )}
           >
-            <div
-              className={clsx(
-                'mt-0.5 flex h-8 shrink-0 items-center justify-center rounded-lg px-2 text-xs font-semibold',
-                message.role === 'assistant' ? 'bg-accent text-accent-ink' : 'bg-subtle text-ink',
+            <div className="flex items-center gap-3">
+              {message.role === 'assistant' ? (
+                 <div className="flex h-8 w-8 items-center justify-center rounded-full bg-accent/20 shadow-[0_0_15px_rgba(235,208,26,0.5)] border border-accent/40">
+                   <div className="h-4 w-4 rounded-full bg-accent animate-[pulse_3s_ease-in-out_infinite]" />
+                 </div>
+              ) : (
+                 <div className="flex h-8 w-8 items-center justify-center rounded-full bg-subtle border border-line text-xs font-semibold text-ink uppercase">
+                    {username.charAt(0)}
+                 </div>
               )}
-            >
-              {message.role === 'assistant' ? (message.model_name || selectedModel || 'AI') : username}
+              <div className="text-sm font-semibold text-ink tracking-wide">
+                {message.role === 'assistant' ? (message.model_name || selectedModel || 'Assistant') : username}
+              </div>
             </div>
-            <div className="min-w-0 flex-1 text-sm leading-7 text-ink">
+            <div className="min-w-0 flex-1 text-sm md:text-[15px] leading-relaxed text-ink pl-11">
               {message.content ? (
                 <>
                   <MarkdownMessage content={message.content} />
@@ -126,19 +132,24 @@ function EmptyState({ workspaceName }: { workspaceName?: string }) {
   ];
 
   return (
-    <div className="py-12">
-      <h1 className="text-3xl font-semibold tracking-normal text-ink">What are we building locally?</h1>
-      <p className="mt-3 max-w-2xl text-sm leading-6 text-muted">Chat with installed Ollama models, workspace context, documents, and images. Everything stays on this machine.</p>
-      <div className="mt-8 grid gap-3 sm:grid-cols-2">
+    <div className="py-20 flex flex-col items-center text-center">
+      <div className="mb-8 flex h-24 w-24 items-center justify-center rounded-full bg-accent/10 shadow-[0_0_50px_rgba(235,208,26,0.4)] border border-accent/30">
+         <div className="h-12 w-12 rounded-full bg-accent shadow-[0_0_30px_rgba(235,208,26,0.8)] animate-[pulse_4s_ease-in-out_infinite]" />
+      </div>
+      <h1 className="text-4xl font-semibold tracking-tight text-ink">Welcome back <span className="text-accent">{useSettingsStore.getState().diagnostics?.username || 'Alex'}</span>!</h1>
+      <p className="mt-4 max-w-2xl text-base leading-6 text-muted">Which workspace or project do you want to analyze today?</p>
+      <div className="mt-12 grid gap-4 sm:grid-cols-2 max-w-3xl w-full text-left">
         {cards.map((card) => {
           const Icon = card.icon;
           return (
-            <div key={card.title} className="rounded-xl border border-line bg-elevated p-4">
-              <div className="flex items-center gap-2 text-sm font-medium text-ink">
-                <Icon size={16} className="text-accent" />
+            <div key={card.title} className="rounded-3xl border border-line bg-elevated/40 p-5 shadow-float backdrop-blur-md transition-colors hover:border-accent/50 hover:bg-elevated/60">
+              <div className="flex items-center gap-3 text-sm font-semibold text-ink">
+                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-accent/10 text-accent">
+                  <Icon size={16} />
+                </div>
                 {card.title}
               </div>
-              <p className="mt-2 text-xs leading-5 text-muted">{card.body}</p>
+              <p className="mt-3 text-xs leading-relaxed text-muted pl-11">{card.body}</p>
             </div>
           );
         })}
