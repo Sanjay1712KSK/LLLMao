@@ -108,7 +108,9 @@ parts:
       - libwebkit2gtk-4.1-dev
 
     override-build: |
-      npm install -g pnpm
+      corepack enable
+
+      corepack prepare pnpm@latest --activate
 
       export PATH="$HOME/.cargo/bin:$PATH"
 
