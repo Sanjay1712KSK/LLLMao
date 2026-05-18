@@ -95,6 +95,7 @@ export function SettingsCenter() {
                   <StatusLine label="Local models" ok={Boolean(diagnostics?.models.ok)} detail={`${diagnostics?.models.count ?? 0} installed`} />
                   <StatusLine label="Database" ok={Boolean(diagnostics?.database.ok)} detail={diagnostics?.database.message} />
                   <StatusLine label="Chroma/vector DB" ok={Boolean(diagnostics?.chromadb.ok)} detail={diagnostics?.chromadb.message} />
+                  <StatusLine label="Voice transcription" ok={Boolean(diagnostics?.audio?.ok)} detail={diagnostics?.audio?.message} />
                   <StatusLine label="GPU detection" ok={Boolean(diagnostics?.gpu.ok)} detail={diagnostics?.gpu.ok ? 'Telemetry available' : 'Optional telemetry unavailable'} />
                 </div>
               </section>

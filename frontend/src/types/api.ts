@@ -21,6 +21,12 @@ export type RuntimeDiagnostics = {
   database: { ok: boolean; message: string; details?: string | null };
   chromadb: { ok: boolean; message: string; details?: string | null };
   storage: { ok: boolean; message: string; details?: string | null };
+  audio?: {
+    ok: boolean;
+    message: string;
+    ffmpeg: { ok: boolean; path?: string | null };
+    faster_whisper: { ok: boolean };
+  };
   gpu: { ok: boolean; details: unknown };
   paths: Record<string, string>;
 };
