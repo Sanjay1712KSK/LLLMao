@@ -3,7 +3,7 @@ import shutil
 import uuid
 from pathlib import Path
 
-from fastapi import UploadFile
+from fastapi import HTTPException, UploadFile, status
 
 from app.config import get_settings
 
@@ -34,6 +34,8 @@ async def save_upload(file: UploadFile, chat_id: int | None = None) -> tuple[str
     ext = Path(file.filename or "audio.webm").suffix
     if not ext:
         ext = ".webm"
+    if ext.lower() not in {".webm", ".wav", ".mp3", ".m4a", ".ogg", ".oga", ".flac"}:
+        raise HTTPException(status_code=status.HTTP_415_UNSUPPORTED_MEDIA_TYPE, detail="Unsupported audio format.")
         
     dest_dir = get_audio_dir(chat_id)
     storage_path = dest_dir / f"{attachment_id}{ext}"

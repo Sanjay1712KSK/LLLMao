@@ -30,6 +30,12 @@ export function ChatInput() {
     await sendMessage(content);
   };
 
+  const submitTranscript = async (transcript: string) => {
+    setValue(transcript);
+    await sendMessage(transcript);
+    setValue('');
+  };
+
   return (
     <div
       className={clsx('sticky bottom-0 border-t bg-surface/95 px-4 py-4 backdrop-blur', dragActive ? 'border-accent' : 'border-line')}
@@ -84,7 +90,7 @@ export function ChatInput() {
             <ImagePlus size={14} />
             Images
           </button>
-          <AudioRecorder />
+          <AudioRecorder onTranscript={submitTranscript} />
           </div>
           <input
             ref={fileInputRef}

@@ -93,6 +93,9 @@ from app.audio.stt import transcribe_audio
 
 @router.post("/audio/upload", response_model=ChatAttachmentRead)
 async def upload_audio(chat_id: int | None = None, file: UploadFile = File(...), db: Session = Depends(get_db)):
+    if file.content_type and not file.content_type.startswith("audio/") and file.content_type != "application/octet-stream":
+        raise HTTPException(status_code=status.HTTP_415_UNSUPPORTED_MEDIA_TYPE, detail="Upload must be an audio recording.")
+
     # save file
     attachment_id, storage_path = await save_upload(file, chat_id)
     
@@ -100,15 +103,15 @@ async def upload_audio(chat_id: int | None = None, file: UploadFile = File(...),
     try:
         stt_result = await transcribe_audio(storage_path)
     except Exception as e:
-        logger.error(f"STT failed for {storage_path}: {e}")
-        stt_result = {
-            "text": "",
-            "segments": [],
-            "language": "unknown",
-            "language_probability": 0.0,
-            "duration": 0.0,
-            "latency_ms": 0
-        }
+        logger.exception("stt_failed", extra={"storage_path": storage_path})
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail={
+                "message": "Voice transcription failed.",
+                "details": str(e),
+                "recovery": "Check microphone input, ffmpeg availability, and the faster-whisper model cache.",
+            },
+        ) from e
     
     # create attachment record
     attachment = ChatAttachment(

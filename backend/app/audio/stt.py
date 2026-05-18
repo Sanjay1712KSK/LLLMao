@@ -1,9 +1,11 @@
+import asyncio
 import logging
+import os
+import shutil
 import time
 from typing import Any
 
 from faster_whisper import WhisperModel
-import os
 
 from app.orchestration.scheduler import scheduler
 
@@ -30,7 +32,11 @@ async def transcribe_audio(file_path: str) -> dict[str, Any]:
     """
     Transcribes audio file using faster-whisper, returning segments and text.
     """
-    # File size limit check (approx 5MB for 5 mins of webm)
+    if not shutil.which("ffmpeg"):
+        raise RuntimeError("ffmpeg is required for local audio transcription but was not found on PATH.")
+    if not os.path.exists(file_path):
+        raise FileNotFoundError(f"Audio file does not exist: {file_path}")
+
     if os.path.getsize(file_path) > 10 * 1024 * 1024:
         raise ValueError(f"Audio file size exceeds maximum allowed (10MB).")
 
@@ -39,14 +45,18 @@ async def transcribe_audio(file_path: str) -> dict[str, Any]:
     start_time = time.time()
     logger.info(f"Starting STT for {file_path}")
     
-    # Run transcription
-    # vad_filter=True acts as a chunking mechanism to prevent OOM
-    segments_gen, info = model.transcribe(file_path, beam_size=5, vad_filter=True, vad_parameters=dict(min_silence_duration_ms=500))
+    segments_gen, info = await asyncio.to_thread(
+        model.transcribe,
+        file_path,
+        beam_size=5,
+        vad_filter=True,
+        vad_parameters=dict(min_silence_duration_ms=500),
+    )
     
     segments = []
     full_text = []
     
-    for segment in segments_gen:
+    for segment in await asyncio.to_thread(list, segments_gen):
         segments.append({
             "start": segment.start,
             "end": segment.end,
@@ -56,9 +66,12 @@ async def transcribe_audio(file_path: str) -> dict[str, Any]:
         
     latency = time.time() - start_time
     logger.info(f"STT completed in {latency:.2f}s for {file_path}")
+    text = " ".join(full_text).strip()
+    if not text:
+        raise ValueError("No speech was detected in the recording.")
     
     return {
-        "text": " ".join(full_text),
+        "text": text,
         "segments": segments,
         "language": info.language,
         "language_probability": info.language_probability,
