@@ -53,7 +53,8 @@ export function SystemDashboard() {
   const isDegraded = orchestration?.degraded_mode;
 
   return (
-    <aside className={clsx("hidden h-full shrink-0 border-l border-line bg-panel-soft xl:flex xl:flex-col", collapsed ? "w-14" : "w-80")}>
+    <div className="h-full py-3 pr-3 pl-1.5 hidden xl:flex">
+      <aside className={clsx("h-full shrink-0 flex-col border border-line bg-panel shadow-float transition-all duration-300 rounded-3xl overflow-hidden relative flex", collapsed ? "w-16" : "w-80")}>
       <div className="border-b border-line p-4">
         <div className="flex items-center justify-between text-sm font-semibold text-ink">
           <div className="flex items-center gap-2">
@@ -133,6 +134,7 @@ export function SystemDashboard() {
         </div>
         {error && <div className="rounded-lg border border-red-500/30 bg-red-500/10 p-3 text-xs text-red-200">{error}</div>}
       </div>}
-    </aside>
+      </aside>
+    </div>
   );
 }
