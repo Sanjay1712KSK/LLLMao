@@ -23,11 +23,6 @@
     ],
     "security": {
       "csp": "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; media-src 'self' blob: data:; connect-src 'self' ws://localhost:* ws://127.0.0.1:* http://localhost:* http://127.0.0.1:*; img-src 'self' blob: data:;"
-    },
-    "macOS": {
-      "infoPlist": {
-        "NSMicrophoneUsageDescription": "LLLMao needs microphone access to record voice messages and transcribe them locally."
-      }
     }
   },
   "bundle": {
