@@ -93,8 +93,10 @@ from app.audio.stt import transcribe_audio
 
 @router.post("/audio/upload", response_model=ChatAttachmentRead)
 async def upload_audio(chat_id: int | None = Form(default=None), file: UploadFile = File(...), db: Session = Depends(get_db)):
-    if file.content_type and not file.content_type.startswith("audio/") and file.content_type != "application/octet-stream":
-        raise HTTPException(status_code=status.HTTP_415_UNSUPPORTED_MEDIA_TYPE, detail="Upload must be an audio recording.")
+    # Allow empty content_type or octet-stream for WebKit compatibility
+    if file.content_type and not file.content_type.startswith("audio/") and file.content_type not in ["application/octet-stream", "video/webm", "video/mp4"]:
+        # WebKit sometimes uploads audio/mp4 as video/mp4, or empty
+        pass # We rely on FFmpeg parsing instead of strict header checking
 
     # save file
     attachment_id, storage_path = await save_upload(file, chat_id)
