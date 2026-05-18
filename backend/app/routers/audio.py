@@ -83,7 +83,7 @@ async def download_piper_voice(payload: PiperModelDownload, background_tasks: Ba
     return {"status": "downloading", "model_id": payload.model_id}
 
 import json
-from fastapi import File, UploadFile, Depends
+from fastapi import File, Form, UploadFile, Depends
 from sqlalchemy.orm import Session
 from app.database.session import get_db
 from app.models.chat import ChatAttachment, AttachmentType, AttachmentSource
@@ -92,7 +92,7 @@ from app.audio.utils import save_upload
 from app.audio.stt import transcribe_audio
 
 @router.post("/audio/upload", response_model=ChatAttachmentRead)
-async def upload_audio(chat_id: int | None = None, file: UploadFile = File(...), db: Session = Depends(get_db)):
+async def upload_audio(chat_id: int | None = Form(default=None), file: UploadFile = File(...), db: Session = Depends(get_db)):
     if file.content_type and not file.content_type.startswith("audio/") and file.content_type != "application/octet-stream":
         raise HTTPException(status_code=status.HTTP_415_UNSUPPORTED_MEDIA_TYPE, detail="Upload must be an audio recording.")
 
