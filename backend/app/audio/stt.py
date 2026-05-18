@@ -1,4 +1,5 @@
 import asyncio
+import ctypes.util
 import importlib.util
 import logging
 import os
@@ -17,12 +18,16 @@ _stt_model: WhisperModel | None = None
 _model_size = "base"
 MAX_AUDIO_DURATION_SECONDS = 300  # 5 minutes limit to protect VRAM
 
+
+def _cuda_runtime_available() -> bool:
+    return ctypes.util.find_library("cublas") is not None or ctypes.util.find_library("cublasLt") is not None
+
 async def _get_model() -> WhisperModel:
     global _stt_model
     if _stt_model is None:
         # Check orchestration to see if we should fallback to CPU
         admitted = await scheduler.admit_task(domain="GPU_COMPUTE", priority="realtime")
-        device = "cuda" if admitted else "cpu"
+        device = "cuda" if admitted and _cuda_runtime_available() else "cpu"
         compute_type = "float16" if device == "cuda" else "int8"
         
         logger.info(f"Loading faster-whisper model '{_model_size}' on {device} ({compute_type})")
