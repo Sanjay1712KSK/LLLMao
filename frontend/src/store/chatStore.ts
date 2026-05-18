@@ -15,6 +15,7 @@ type ChatState = {
   selectedModel: string;
   health: OllamaHealth;
   isLoading: boolean;
+  isModelLoading: boolean;
   isStreaming: boolean;
   tokensPerSecond: number | null;
   searchQuery: string;
@@ -47,6 +48,7 @@ export const useChatStore = create<ChatState>((set, get) => ({
   selectedModel: '',
   health: { ok: false, message: 'Checking Ollama...', backend_ok: false, ollama_ok: false, database_ok: false },
   isLoading: false,
+  isModelLoading: false,
   isStreaming: false,
   tokensPerSecond: null,
   searchQuery: '',
@@ -125,15 +127,15 @@ export const useChatStore = create<ChatState>((set, get) => ({
 
   setSelectedModel: async (selectedModel) => {
     if (!selectedModel || selectedModel === get().selectedModel) return;
-    set({ isLoading: true, error: null });
+    set({ isModelLoading: true, error: null });
     try {
       await api.validateModel(selectedModel);
       const stats = useNotificationStore.getState();
-      set({ selectedModel, isLoading: false });
+      set({ selectedModel, isModelLoading: false });
       stats.notify({ kind: 'success', title: 'Model ready', message: `${selectedModel} validated, connected, and warmed up.` });
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Model validation failed';
-      set({ isLoading: false, error: message });
+      set({ isModelLoading: false, error: message });
       useNotificationStore.getState().notify({ kind: 'error', title: 'Model switch failed', message });
     }
   },
