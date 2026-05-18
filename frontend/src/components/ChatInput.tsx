@@ -25,7 +25,7 @@ export function ChatInput() {
   const { pendingImages, addImages, removeImage, error, errorDetails } = useMultimodalStore();
 
   const submit = async () => {
-    if (!value.trim() || isStreaming) return;
+    if (!value.trim() || isStreaming || isModelLoading) return;
     const content = value;
     setValue('');
     await sendMessage(content);
