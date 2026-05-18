@@ -1,8 +1,14 @@
 #!/usr/bin/env bash
-set -euo pipefail
+set -e
 
-ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+ROOT_DIR="$SCRIPT_DIR/../.."
+
 cd "$ROOT_DIR/deployment/snap"
-snapcraft pack
-mkdir -p "$ROOT_DIR/deployment/release/artifacts"
-find "$ROOT_DIR/deployment/snap" -maxdepth 1 -type f -name "*.snap" -exec cp {} "$ROOT_DIR/deployment/release/artifacts/" \;
+
+echo "Building LLLMao Snap package..."
+snapcraft clean
+snapcraft
+
+echo "Build complete."
+echo "To install: sudo snap install lllmao_v1Janus-Beta_amd64.snap --classic --dangerous"
