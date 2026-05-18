@@ -108,17 +108,15 @@ parts:
       - libwebkit2gtk-4.1-dev
 
     override-build: |
-      corepack enable
-
-      corepack prepare pnpm@latest --activate
-
       export PATH="$HOME/.cargo/bin:$PATH"
 
       cd frontend
 
-      pnpm install
+      npm install
 
-      pnpm tauri build
+      npm run build
+
+      npx tauri build
 
       mkdir -p $CRAFT_PART_INSTALL/frontend
 
