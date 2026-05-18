@@ -1,0 +1,31 @@
+name: lllmao
+base: core24
+version: '0.1.0'
+summary: Local Lightweight Language Model Assistant Orchestrator
+description: |
+  LLLMao is a Linux-native local AI workstation for installed Ollama models,
+  semantic RAG, workspace intelligence, multimodal workflows, and runtime
+  orchestration. It does not bundle model weights or use cloud inference.
+
+grade: stable
+confinement: classic
+license: MIT
+
+apps:
+  lllmao:
+    command: bin/lllmao
+    desktop: usr/share/applications/com.lllmao.desktop.desktop
+    environment:
+      MYOWNRTXCHAT_OLLAMA_BASE_URL: http://localhost:11434
+    plugs:
+      - home
+      - network
+      - network-bind
+      - removable-media
+
+parts:
+  lllmao:
+    plugin: dump
+    source: ../../tauri/target/release/bundle/deb
+    organize:
+      '*.deb': artifacts/

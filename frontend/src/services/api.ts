@@ -21,6 +21,7 @@ import type {
   WorkspaceFile,
   WorkspaceSource,
   OrchestrationStatus,
+  RuntimeDiagnostics,
 } from '../types/api';
 
 export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? 'http://127.0.0.1:8000';
@@ -90,6 +91,11 @@ export const api = {
   health: () => jsonRequest<OllamaHealth>('/health'),
   stats: () => jsonRequest<SystemStats>('/stats'),
   models: () => jsonRequest<OllamaModel[]>('/models'),
+  validateModel: (model: string) => jsonRequest<OllamaModel>('/models/validate', { method: 'POST', body: JSON.stringify({ model }) }),
+  runtimeDiagnostics: () => jsonRequest<RuntimeDiagnostics>('/runtime/diagnostics'),
+  runtimePaths: () => jsonRequest<Record<string, string>>('/runtime/paths'),
+  clearCache: (payload = { cache: true, embeddings: true }) =>
+    jsonRequest<{ cleared: string[] }>('/runtime/cache/clear', { method: 'POST', body: JSON.stringify(payload) }),
   chats: () => jsonRequest<Chat[]>('/chats'),
   createChat: (title = 'New chat') =>
     jsonRequest<Chat>('/chats', { method: 'POST', body: JSON.stringify({ title }) }),
@@ -99,6 +105,10 @@ export const api = {
     jsonRequest<Chat>(`/chats/${chatId}`, { method: 'PATCH', body: JSON.stringify(payload) }),
   deleteChat: async (chatId: number) => {
     const response = await fetch(`${API_BASE_URL}/chats/${chatId}`, { method: 'DELETE' });
+    if (!response.ok) throw await responseError(response);
+  },
+  deleteAllChats: async () => {
+    const response = await fetch(`${API_BASE_URL}/chats`, { method: 'DELETE' });
     if (!response.ok) throw await responseError(response);
   },
   orchestrationStatus: () => jsonRequest<OrchestrationStatus>('/orchestration/status'),

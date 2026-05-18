@@ -3,6 +3,7 @@ import { useState } from 'react';
 import clsx from 'clsx';
 
 import { useChatStore } from '../store/chatStore';
+import { useSettingsStore } from '../store/settingsStore';
 import { KnowledgeBasePanel } from './KnowledgeBasePanel';
 import { DeveloperToolsPanel } from './DeveloperToolsPanel';
 import { RetrievalDebugPanel } from './RetrievalDebugPanel';
@@ -11,6 +12,7 @@ import { WorkspacePanel } from './WorkspacePanel';
 export function Sidebar() {
   const { chats, currentChatId, createChat, selectChat, renameChat, togglePinned, deleteChat, searchQuery, setSearchQuery } =
     useChatStore();
+  const devToolsEnabled = useSettingsStore((state) => state.devToolsEnabled);
   const [editingId, setEditingId] = useState<number | null>(null);
   const [draft, setDraft] = useState('');
   const visibleChats = chats.filter((chat) => chat.title.toLowerCase().includes(searchQuery.trim().toLowerCase()));
@@ -102,7 +104,7 @@ export function Sidebar() {
         ))}
       </nav>
       <WorkspacePanel />
-      <DeveloperToolsPanel />
+      {devToolsEnabled && <DeveloperToolsPanel />}
       <KnowledgeBasePanel />
       <RetrievalDebugPanel />
     </aside>

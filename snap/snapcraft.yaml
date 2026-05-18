@@ -1,19 +1,17 @@
 name: lllmao
 base: core24
-version: 'vJanus-beta'
+version: '0.1.0'
 summary: Local Lightweight Language Model Assistant Orchestrator
 description: |
-  LLLMao is a Linux-native local AI workstation
-  platform for Ollama-based conversational AI,
-  semantic RAG, workspace intelligence,
-  and multimodal workflows.
+  LLLMao is a Linux-native local AI workstation for already-installed Ollama
+  models, semantic RAG, workspace intelligence, and multimodal workflows.
 
-grade: devel
+grade: stable
 confinement: classic
 
 apps:
-  myownrtxchat:
-    command: lllmao
+  lllmao:
+    command: bin/lllmao
     plugs:
       - home
       - network
@@ -21,6 +19,6 @@ apps:
       - removable-media
 
 parts:
-  myownrtxchat:
+  lllmao:
     plugin: dump
     source: .

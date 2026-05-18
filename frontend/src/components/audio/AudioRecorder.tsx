@@ -116,9 +116,9 @@ export const AudioRecorder: React.FC = () => {
       formData.append('file', blob, 'recording.webm');
       
       // We pass the active chat_id if available (not strictly required here if we use message_id linking later)
-      const { activeChatId } = useChatStore.getState();
-      if (activeChatId) {
-        formData.append('chat_id', activeChatId.toString());
+      const { currentChatId } = useChatStore.getState();
+      if (currentChatId) {
+        formData.append('chat_id', currentChatId.toString());
       }
 
       const response = await fetch(`${API_BASE_URL}/audio/upload`, {

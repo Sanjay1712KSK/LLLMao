@@ -19,11 +19,14 @@ export function ChatView() {
   if (!health.ok) {
     return (
       <main className="flex min-h-0 flex-1 items-center justify-center p-6">
-        <div className="max-w-lg rounded-xl border border-line bg-panel p-6 text-center shadow-soft">
-          <h1 className="text-xl font-semibold text-ink">Ollama is not available</h1>
+        <div className="max-w-xl rounded-lg border border-line bg-panel p-6 text-center shadow-soft">
+          <h1 className="text-xl font-semibold text-ink">Local runtime needs attention</h1>
           <p className="mt-3 text-sm leading-6 text-muted">
-            Install or start Ollama locally, confirm it is serving at <code>http://localhost:11434</code>, then restart this workspace.
+            Start Ollama and confirm it is serving at <code>http://localhost:11434</code>. LLLMao will use installed local models only.
           </p>
+          <button className="mt-5 inline-flex items-center gap-2 rounded-md border border-line px-3 py-2 text-sm text-muted hover:text-ink" type="button" onClick={() => void bootstrap()}>
+            <RotateCw size={14} /> Check again
+          </button>
         </div>
       </main>
     );

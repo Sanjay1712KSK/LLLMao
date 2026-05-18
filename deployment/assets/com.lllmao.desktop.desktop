@@ -1,0 +1,11 @@
+[Desktop Entry]
+Type=Application
+Name=LLLMao
+GenericName=Local AI Workstation
+Comment=Linux-native local Ollama AI workspace
+Exec=lllmao
+Icon=lllmao
+Terminal=false
+Categories=Development;Utility;
+StartupNotify=true
+StartupWMClass=LLLMao

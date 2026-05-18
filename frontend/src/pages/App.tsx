@@ -5,9 +5,11 @@ import { ChatInput } from '../components/ChatInput';
 import { ChatView } from '../components/ChatView';
 import { Header } from '../components/Header';
 import { Notifications } from '../components/Notifications';
+import { SettingsCenter } from '../components/SettingsCenter';
 import { Sidebar } from '../components/Sidebar';
 import { SystemDashboard } from '../components/SystemDashboard';
 import { useChatStore } from '../store/chatStore';
+import { useSettingsStore } from '../store/settingsStore';
 import { useSystemStore } from '../store/systemStore';
 import { AudioModelModal } from '../components/audio/AudioModelModal';
 
@@ -15,6 +17,7 @@ export default function App() {
   const bootstrap = useChatStore((state) => state.bootstrap);
   const startPolling = useSystemStore((state) => state.startPolling);
   const stopPolling = useSystemStore((state) => state.stopPolling);
+  const telemetryEnabled = useSettingsStore((state) => state.telemetryEnabled);
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   useEffect(() => {
@@ -27,6 +30,7 @@ export default function App() {
     <div className="h-screen overflow-hidden bg-surface text-ink">
       <Notifications />
       <AudioModelModal />
+      <SettingsCenter />
       <div className="flex h-full">
         <div className="hidden md:block">
           <Sidebar />
@@ -49,7 +53,7 @@ export default function App() {
           <ChatView />
           <ChatInput />
         </section>
-        <SystemDashboard />
+        {telemetryEnabled && <SystemDashboard />}
       </div>
     </div>
   );

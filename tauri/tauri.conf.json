@@ -15,9 +15,10 @@
         "title": "LLLMao",
         "width": 1280,
         "height": 820,
-        "minWidth": 920,
+        "minWidth": 860,
         "minHeight": 640,
-        "resizable": true
+        "resizable": true,
+        "center": true
       }
     ],
     "security": {
@@ -26,13 +27,31 @@
   },
   "bundle": {
     "active": true,
-    "targets": ["deb"],
+    "targets": ["deb", "appimage"],
     "category": "DeveloperTool",
     "shortDescription": "Local Ollama AI workspace",
     "longDescription": "LLLMao is a lightweight Linux-native desktop workspace for already-installed local Ollama models.",
+    "homepage": "https://localhost/lllmao",
+    "publisher": "LLLMao contributors",
+    "copyright": "Copyright LLLMao contributors",
+    "licenseFile": "../LICENSE",
+    "icon": ["../deployment/assets/lllmao.svg"],
     "linux": {
+      "appimage": {
+        "bundleMediaFramework": true
+      },
       "deb": {
-        "depends": ["libwebkit2gtk-4.1-0"]
+        "depends": [
+          "libwebkit2gtk-4.1-0",
+          "libgtk-3-0",
+          "libayatana-appindicator3-1",
+          "librsvg2-2",
+          "python3",
+          "python3-venv"
+        ],
+        "files": {
+          "/usr/share/applications/com.lllmao.desktop.desktop": "../deployment/assets/com.lllmao.desktop.desktop"
+        }
       }
     }
   }

@@ -3,6 +3,7 @@ import { create } from 'zustand';
 import { api } from '../services/api';
 import type { OllamaHealth, SystemStats, OrchestrationStatus } from '../types/api';
 import { useChatStore } from './chatStore';
+import { useSettingsStore } from './settingsStore';
 
 type SystemState = {
   stats: SystemStats | null;
@@ -83,12 +84,12 @@ export const useSystemStore = create<SystemState>((set, get) => ({
     void get().fetchOrchestration();
     const statsTimer = window.setInterval(() => {
       if (document.visibilityState === 'visible') void get().fetchStats();
-    }, 2000);
+    }, useSettingsStore.getState().telemetryEnabled ? 2000 : 10000);
     const healthTimer = window.setInterval(() => {
       if (document.visibilityState === 'visible') void get().fetchHealth();
     }, 7000);
     const orchestrationTimer = window.setInterval(() => {
-      if (document.visibilityState === 'visible') void get().fetchOrchestration();
+      if (document.visibilityState === 'visible' && useSettingsStore.getState().telemetryEnabled) void get().fetchOrchestration();
     }, 2000);
     set({ statsTimer, healthTimer, orchestrationTimer });
   },

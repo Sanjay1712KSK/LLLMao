@@ -12,6 +12,19 @@ export type OllamaHealth = {
   dependencies?: Record<string, { ok: boolean; message: string }>;
 };
 
+export type RuntimeDiagnostics = {
+  username: string;
+  app: string;
+  ollama: { ok: boolean; message: string; url: string };
+  models: { ok: boolean; count: number; names: string[] };
+  backend: { ok: boolean; message: string };
+  database: { ok: boolean; message: string; details?: string | null };
+  chromadb: { ok: boolean; message: string; details?: string | null };
+  storage: { ok: boolean; message: string; details?: string | null };
+  gpu: { ok: boolean; details: unknown };
+  paths: Record<string, string>;
+};
+
 export type OllamaModel = {
   name: string;
   modified_at?: string | null;

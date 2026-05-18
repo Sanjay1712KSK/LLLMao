@@ -30,7 +30,7 @@ export function Header() {
         <select
           className="h-10 max-w-[44vw] rounded-lg border border-line bg-panel px-3 text-sm text-ink outline-none focus:border-accent md:max-w-xs"
           value={selectedModel}
-          onChange={(event) => setSelectedModel(event.target.value)}
+          onChange={(event) => void setSelectedModel(event.target.value)}
           disabled={!models.length}
         >
           {!models.length && <option value="">No installed models detected</option>}

@@ -30,7 +30,7 @@ type ChatState = {
   togglePinned: (chatId: number) => Promise<void>;
   deleteChat: (chatId: number) => Promise<void>;
   setSearchQuery: (query: string) => void;
-  setSelectedModel: (model: string) => void;
+  setSelectedModel: (model: string) => Promise<void>;
   setUseKnowledgeBase: (enabled: boolean) => void;
   setUseWorkspace: (enabled: boolean) => void;
   sendMessage: (content: string) => Promise<void>;
@@ -123,7 +123,20 @@ export const useChatStore = create<ChatState>((set, get) => ({
 
   setSearchQuery: (searchQuery) => set({ searchQuery }),
 
-  setSelectedModel: (selectedModel) => set({ selectedModel }),
+  setSelectedModel: async (selectedModel) => {
+    if (!selectedModel || selectedModel === get().selectedModel) return;
+    set({ isLoading: true, error: null });
+    try {
+      await api.validateModel(selectedModel);
+      const stats = useNotificationStore.getState();
+      set({ selectedModel, isLoading: false });
+      stats.notify({ kind: 'success', title: 'Model ready', message: `${selectedModel} validated, connected, and warmed up.` });
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Model validation failed';
+      set({ isLoading: false, error: message });
+      useNotificationStore.getState().notify({ kind: 'error', title: 'Model switch failed', message });
+    }
+  },
   setUseKnowledgeBase: (useKnowledgeBase) => set({ useKnowledgeBase, useWorkspace: useKnowledgeBase ? false : get().useWorkspace }),
   setUseWorkspace: (useWorkspace) => set({ useWorkspace, useKnowledgeBase: useWorkspace ? false : get().useKnowledgeBase }),
 

@@ -6,12 +6,12 @@ export default {
   theme: {
     extend: {
       colors: {
-        panel: '#17191f',
-        surface: '#101217',
-        ink: '#f2f5f8',
-        muted: '#9ca6b3',
-        line: '#2a2f3a',
-        accent: '#55c7a5',
+        panel: 'var(--panel)',
+        surface: 'var(--surface)',
+        ink: 'var(--ink)',
+        muted: 'var(--muted)',
+        line: 'var(--line)',
+        accent: 'var(--accent)',
       },
       boxShadow: {
         soft: '0 18px 45px rgba(0, 0, 0, 0.22)',

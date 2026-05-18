@@ -1,0 +1,16 @@
+{
+  "application": "LLLMao",
+  "version": "0.1.0",
+  "targets": ["deb", "snap", "appimage"],
+  "inference": {
+    "allowed_endpoint": "http://localhost:11434",
+    "bundles_models": false,
+    "cloud_inference": false
+  },
+  "runtime_paths": {
+    "data": "$XDG_DATA_HOME/lllmao",
+    "config": "$XDG_CONFIG_HOME/lllmao",
+    "cache": "$XDG_CACHE_HOME/lllmao",
+    "state": "$XDG_STATE_HOME/lllmao"
+  }
+}

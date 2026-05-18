@@ -1,6 +1,7 @@
-import { Activity, Bot, Cpu, Database, Gauge, HardDrive, MemoryStick, Server, ShieldAlert, Wifi, WifiOff } from 'lucide-react';
+import { Activity, Bot, ChevronDown, ChevronUp, Cpu, Database, Gauge, HardDrive, MemoryStick, Server, ShieldAlert, Wifi, WifiOff } from 'lucide-react';
 import clsx from 'clsx';
 import type React from 'react';
+import { useState } from 'react';
 
 import { formatBytes } from '../lib/format';
 import { useChatStore } from '../store/chatStore';
@@ -36,6 +37,7 @@ function StatusDot({ ok }: { ok: boolean }) {
 }
 
 export function SystemDashboard() {
+  const [collapsed, setCollapsed] = useState(false);
   const stats = useSystemStore((state) => state.stats);
   const orchestration = useSystemStore((state) => state.orchestration);
   const setPolicy = useSystemStore((state) => state.setPolicy);
@@ -51,22 +53,25 @@ export function SystemDashboard() {
   const isDegraded = orchestration?.degraded_mode;
 
   return (
-    <aside className="hidden h-full w-80 shrink-0 border-l border-line bg-[#0d0f14] xl:flex xl:flex-col">
+    <aside className={clsx("hidden h-full shrink-0 border-l border-line bg-panel xl:flex xl:flex-col", collapsed ? "w-14" : "w-80")}>
       <div className="border-b border-line p-4">
         <div className="flex items-center justify-between text-sm font-semibold text-ink">
           <div className="flex items-center gap-2">
             <Gauge size={17} className="text-accent" />
-            Live System
+            {!collapsed && 'Live System'}
           </div>
-          {isDegraded && (
+          <button className="rounded p-1 text-muted hover:bg-surface hover:text-ink" type="button" title={collapsed ? 'Expand telemetry' : 'Collapse telemetry'} onClick={() => setCollapsed(!collapsed)}>
+            {collapsed ? <ChevronUp size={15} /> : <ChevronDown size={15} />}
+          </button>
+          {!collapsed && isDegraded && (
             <span className="flex items-center gap-1 rounded bg-amber-500/20 px-2 py-0.5 text-[10px] uppercase text-amber-500">
               <ShieldAlert size={12} /> Degraded
             </span>
           )}
         </div>
-        <p className="mt-1 text-xs text-muted">Adaptive runtime metrics</p>
+        {!collapsed && <p className="mt-1 text-xs text-muted">Adaptive runtime metrics</p>}
       </div>
-      <div className="min-h-0 flex-1 space-y-3 overflow-y-auto p-3">
+      {!collapsed && <div className="min-h-0 flex-1 space-y-3 overflow-y-auto p-3">
         {orchestration && (
           <div className="rounded-lg border border-line bg-panel p-3">
              <div className="mb-2 text-xs font-medium uppercase tracking-wide text-muted">Runtime Policy Profile</div>
@@ -127,7 +132,7 @@ export function SystemDashboard() {
           </div>
         </div>
         {error && <div className="rounded-lg border border-red-500/30 bg-red-500/10 p-3 text-xs text-red-200">{error}</div>}
-      </div>
+      </div>}
     </aside>
   );
 }
