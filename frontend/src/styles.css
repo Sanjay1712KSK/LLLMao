@@ -18,9 +18,9 @@
   --line: rgba(255, 255, 255, 0.085);
   --hover: rgba(255, 255, 255, 0.075);
   --subtle: rgba(255, 255, 255, 0.045);
-  --input: #101010;
-  --accent: #10a37f;
-  --accent-ink: #041f19;
+  --input: #0a0a0a;
+  --accent: #ebd01a;
+  --accent-ink: #000000;
   --hljs-comment: #7f7f76;
   --hljs-keyword: #c8b6ff;
   --hljs-string: #8fd6b5;
@@ -166,4 +166,17 @@ pre {
 
 *::-webkit-scrollbar-track {
   background: transparent;
+}
+
+.bg-grid-pattern {
+  background-image: 
+    linear-gradient(to right, rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+  background-size: 32px 32px;
+}
+
+:root[data-theme="light"] .bg-grid-pattern {
+  background-image: 
+    linear-gradient(to right, rgba(0, 0, 0, 0.03) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(0, 0, 0, 0.03) 1px, transparent 1px);
 }
