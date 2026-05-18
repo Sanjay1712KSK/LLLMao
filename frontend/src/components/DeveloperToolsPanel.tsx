@@ -35,7 +35,7 @@ export function DeveloperToolsPanel() {
   }, [activeWorkspaceId, cwd, refreshGit, runDiagnostics]);
 
   return (
-    <section className="border-t border-line p-3">
+    <section className="p-3">
       <div className="mb-2 flex items-center gap-2 text-xs font-semibold uppercase tracking-normal text-muted">
         <Terminal size={14} />
         Dev Tools
@@ -43,7 +43,7 @@ export function DeveloperToolsPanel() {
       {!cwd ? (
         <div className="rounded-lg border border-line bg-panel p-2 text-xs text-muted">Select a workspace for terminal, Git, search, and diagnostics.</div>
       ) : (
-        <div className="space-y-3">
+        <div className="grid gap-3 lg:grid-cols-4">
           <div className="rounded-lg border border-line bg-panel p-2">
             <div className="mb-2 flex items-center gap-2 text-xs text-muted">
               <Terminal size={13} /> Terminal
