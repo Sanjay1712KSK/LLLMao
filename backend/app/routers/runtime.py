@@ -46,6 +46,8 @@ async def runtime_diagnostics(db: Session = Depends(get_db)) -> dict[str, Any]:
     stats = await system_monitor.collect(db)
     ffmpeg_path = shutil.which("ffmpeg")
     faster_whisper_ok = importlib.util.find_spec("faster_whisper") is not None
+    pyav_ok = importlib.util.find_spec("av") is not None
+    audio_ok = faster_whisper_ok and (bool(ffmpeg_path) or pyav_ok)
     return {
         "username": getpass.getuser(),
         "app": settings.app_name,
@@ -56,10 +58,11 @@ async def runtime_diagnostics(db: Session = Depends(get_db)) -> dict[str, Any]:
         "chromadb": {"ok": chroma.ok, "message": chroma.message, "details": chroma.details},
         "storage": {"ok": storage.ok, "message": storage.message, "details": storage.details},
         "audio": {
-            "ok": bool(ffmpeg_path) and faster_whisper_ok,
+            "ok": audio_ok,
             "ffmpeg": {"ok": bool(ffmpeg_path), "path": ffmpeg_path},
+            "pyav": {"ok": pyav_ok},
             "faster_whisper": {"ok": faster_whisper_ok},
-            "message": "Voice transcription is ready." if ffmpeg_path and faster_whisper_ok else "Voice transcription needs ffmpeg and faster-whisper.",
+            "message": "Voice transcription is ready." if audio_ok else "Voice transcription needs faster-whisper and an audio decoder.",
         },
         "gpu": {"ok": stats.get("gpu") is not None, "details": stats.get("gpu") or "GPU telemetry unavailable or CPU-only system."},
         "paths": get_runtime_paths().as_dict(),

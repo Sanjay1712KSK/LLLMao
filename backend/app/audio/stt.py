@@ -1,4 +1,5 @@
 import asyncio
+import importlib.util
 import logging
 import os
 import shutil
@@ -32,8 +33,8 @@ async def transcribe_audio(file_path: str) -> dict[str, Any]:
     """
     Transcribes audio file using faster-whisper, returning segments and text.
     """
-    if not shutil.which("ffmpeg"):
-        raise RuntimeError("ffmpeg is required for local audio transcription but was not found on PATH.")
+    if not shutil.which("ffmpeg") and importlib.util.find_spec("av") is None:
+        raise RuntimeError("Audio decoding requires either system ffmpeg or the PyAV package.")
     if not os.path.exists(file_path):
         raise FileNotFoundError(f"Audio file does not exist: {file_path}")
 

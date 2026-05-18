@@ -25,6 +25,7 @@ export type RuntimeDiagnostics = {
     ok: boolean;
     message: string;
     ffmpeg: { ok: boolean; path?: string | null };
+    pyav?: { ok: boolean };
     faster_whisper: { ok: boolean };
   };
   gpu: { ok: boolean; details: unknown };
