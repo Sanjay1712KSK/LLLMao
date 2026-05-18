@@ -1,4 +1,4 @@
-import { Edit3, MessageSquare, PanelLeft, Pin, PinOff, Plus, Search, Trash2 } from 'lucide-react';
+import { Cpu, Edit3, MessageSquare, PanelLeft, Pin, PinOff, Plus, Search, Settings, Trash2 } from 'lucide-react';
 import { useState } from 'react';
 import clsx from 'clsx';
 
@@ -20,6 +20,8 @@ export function Sidebar({ collapsed = false, onToggle }: SidebarProps) {
   const [editingId, setEditingId] = useState<number | null>(null);
   const [draft, setDraft] = useState('');
   const devToolsEnabled = useSettingsStore((state) => state.devToolsEnabled);
+  const setSettingsOpen = useSettingsStore((state) => state.setSettingsOpen);
+  const { models, selectedModel, setSelectedModel } = useChatStore();
   const visibleChats = chats.filter((chat) => chat.title.toLowerCase().includes(searchQuery.trim().toLowerCase()));
 
   const startRename = (id: number, title: string) => {
@@ -34,7 +36,8 @@ export function Sidebar({ collapsed = false, onToggle }: SidebarProps) {
   };
 
   return (
-    <aside className={clsx("flex h-full w-full flex-col border-r border-line bg-panel-soft transition-all duration-300", collapsed ? "items-center overflow-hidden" : "")}>
+    <div className="h-full py-3 pl-3 pr-1.5 flex">
+      <aside className={clsx("flex h-full w-full flex-col border border-line bg-panel shadow-float transition-all duration-300 rounded-3xl overflow-hidden relative", collapsed ? "items-center" : "")}>
       <div className={clsx("border-b border-line p-3 flex flex-col gap-3", collapsed ? "items-center" : "")}>
         <div className="flex gap-2 w-full">
           {onToggle && (
@@ -138,6 +141,35 @@ export function Sidebar({ collapsed = false, onToggle }: SidebarProps) {
           {devToolsEnabled && <DeveloperToolsPanel />}
         </>
       )}
+      <div className={clsx("border-t border-line p-3 flex flex-col gap-2", collapsed ? "items-center" : "")}>
+        {!collapsed && (
+          <div className="flex flex-col gap-2 w-full">
+            <select
+              className="w-full rounded-xl border border-line bg-input p-2 text-xs text-ink outline-none focus:border-accent"
+              value={selectedModel}
+              onChange={(event) => void setSelectedModel(event.target.value)}
+              disabled={!models.length}
+            >
+              {!models.length && <option value="">No models</option>}
+              {models.map((item) => (
+                <option key={item.name} value={item.name}>
+                  {item.name}
+                </option>
+              ))}
+            </select>
+          </div>
+        )}
+        <button
+          className={clsx("flex items-center justify-center gap-2 rounded-xl border border-line bg-elevated text-sm font-semibold text-muted hover:text-ink hover:border-accent", collapsed ? "h-11 w-11" : "h-11 w-full px-3")}
+          onClick={() => setSettingsOpen(true)}
+          type="button"
+          title="Settings"
+        >
+          <Settings size={17} />
+          {!collapsed && 'Settings'}
+        </button>
+      </div>
     </aside>
+    </div>
   );
 }
