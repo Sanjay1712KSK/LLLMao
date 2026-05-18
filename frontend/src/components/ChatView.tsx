@@ -12,7 +12,7 @@ import { MarkdownMessage } from './MarkdownMessage';
 import { AudioPlayer } from './audio/AudioPlayer';
 
 export function ChatView() {
-  const { messages, isStreaming, health, error, bootstrap, selectedModel } = useChatStore();
+  const { messages, isStreaming, health, error, bootstrap, selectedModel, models } = useChatStore();
   const username = useSettingsStore((state) => state.diagnostics?.username) || 'You';
   const autoPlayMessageId = useAudioStore((state) => state.autoPlayMessageId);
   const activeWorkspaceId = useWorkspaceStore((state) => state.activeWorkspaceId);
@@ -20,16 +20,91 @@ export function ChatView() {
   const activeWorkspace = workspaces.find((workspace) => workspace.id === activeWorkspaceId);
   const bottomRef = useAutoScroll(messages.map((message) => message.content).join('|'));
 
-  if (!health.ok) {
+  if (!health.backend_ok) {
     return (
       <main className="flex min-h-0 flex-1 items-center justify-center p-6">
-        <div className="max-w-xl rounded-xl border border-line bg-elevated p-6 text-center shadow-float">
-          <h1 className="text-xl font-semibold text-ink">Local runtime needs attention</h1>
+        <div className="max-w-xl w-full rounded-3xl border border-line bg-elevated/40 p-8 text-center shadow-float backdrop-blur-md">
+          <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-red-500/10 text-red-500">
+            <RotateCw size={24} className="animate-spin" />
+          </div>
+          <h1 className="text-2xl font-semibold text-ink">Backend Offline</h1>
           <p className="mt-3 text-sm leading-6 text-muted">
-            Start Ollama and confirm it is serving at <code>http://localhost:11434</code>. LLLMao will use installed local models only.
+            The Python FastAPI backend is not responding. Please check your system logs or restart the application.
           </p>
-          <button className="mt-5 inline-flex items-center gap-2 rounded-md border border-line px-3 py-2 text-sm text-muted hover:text-ink" type="button" onClick={() => void bootstrap()}>
-            <RotateCw size={14} /> Check again
+          <button className="mt-8 inline-flex items-center gap-2 rounded-xl bg-accent px-5 py-2.5 text-sm font-semibold text-accent-ink hover:brightness-110" type="button" onClick={() => void bootstrap()}>
+            <RotateCw size={16} /> Reconnect Backend
+          </button>
+        </div>
+      </main>
+    );
+  }
+
+  if (!health.ollama_installed) {
+    return (
+      <main className="flex min-h-0 flex-1 items-center justify-center p-6">
+        <div className="max-w-2xl w-full rounded-3xl border border-line bg-elevated/40 p-8 text-center shadow-float backdrop-blur-md">
+          <h1 className="text-3xl font-semibold text-ink">Ollama Required</h1>
+          <p className="mt-4 text-base leading-relaxed text-muted">
+            LLLMao is a local-first workstation that relies on the Ollama runtime to run AI models on your own hardware. We could not detect Ollama on your system.
+          </p>
+          <div className="mt-8 text-left space-y-6">
+             <div className="rounded-2xl border border-line bg-black/40 p-5">
+                <h3 className="text-sm font-semibold text-ink mb-2">Ubuntu / Debian / Snap Users</h3>
+                <code className="block bg-black/60 p-3 rounded-lg text-sm text-accent font-mono border border-line">snap install ollama</code>
+             </div>
+             <div className="rounded-2xl border border-line bg-black/40 p-5">
+                <h3 className="text-sm font-semibold text-ink mb-2">Generic Linux</h3>
+                <code className="block bg-black/60 p-3 rounded-lg text-sm text-accent font-mono border border-line">curl -fsSL https://ollama.com/install.sh | sh</code>
+             </div>
+          </div>
+          <button className="mt-8 inline-flex items-center gap-2 rounded-xl bg-accent px-6 py-3 text-sm font-semibold text-accent-ink hover:brightness-110 shadow-[0_0_15px_rgba(235,208,26,0.4)]" type="button" onClick={() => void bootstrap()}>
+            <RotateCw size={16} /> I have installed Ollama
+          </button>
+        </div>
+      </main>
+    );
+  }
+
+  if (!health.ollama_ok) {
+    return (
+      <main className="flex min-h-0 flex-1 items-center justify-center p-6">
+        <div className="max-w-xl w-full rounded-3xl border border-line bg-elevated/40 p-8 text-center shadow-float backdrop-blur-md">
+          <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-accent/10 text-accent">
+            <RotateCw size={24} />
+          </div>
+          <h1 className="text-2xl font-semibold text-ink">Ollama is Offline</h1>
+          <p className="mt-3 text-sm leading-6 text-muted">
+            Ollama is installed on your system but the daemon is not running. Please start the Ollama service to continue.
+          </p>
+          <code className="mt-6 block bg-black/40 p-3 rounded-lg text-sm text-accent font-mono border border-line">systemctl start ollama</code>
+          <button className="mt-8 inline-flex items-center gap-2 rounded-xl bg-accent px-5 py-2.5 text-sm font-semibold text-accent-ink hover:brightness-110" type="button" onClick={() => void bootstrap()}>
+            <RotateCw size={16} /> Reconnect
+          </button>
+        </div>
+      </main>
+    );
+  }
+
+  if (models.length === 0) {
+    return (
+      <main className="flex min-h-0 flex-1 items-center justify-center p-6">
+        <div className="max-w-xl w-full rounded-3xl border border-line bg-elevated/40 p-8 text-center shadow-float backdrop-blur-md">
+          <h1 className="text-3xl font-semibold text-ink">No Models Installed</h1>
+          <p className="mt-4 text-base leading-relaxed text-muted">
+            Ollama is running, but you don't have any models downloaded yet.
+          </p>
+          <div className="mt-8 text-left space-y-4">
+             <div className="rounded-2xl border border-line bg-black/40 p-5">
+                <h3 className="text-sm font-semibold text-ink mb-2">Recommended for general chat (8GB+ RAM):</h3>
+                <code className="block bg-black/60 p-3 rounded-lg text-sm text-accent font-mono border border-line">ollama run llama3</code>
+             </div>
+             <div className="rounded-2xl border border-line bg-black/40 p-5">
+                <h3 className="text-sm font-semibold text-ink mb-2">Recommended for vision/multimodal:</h3>
+                <code className="block bg-black/60 p-3 rounded-lg text-sm text-accent font-mono border border-line">ollama run llava</code>
+             </div>
+          </div>
+          <button className="mt-8 inline-flex items-center gap-2 rounded-xl bg-accent px-6 py-3 text-sm font-semibold text-accent-ink hover:brightness-110" type="button" onClick={() => void bootstrap()}>
+            <RotateCw size={16} /> Refresh Models
           </button>
         </div>
       </main>
