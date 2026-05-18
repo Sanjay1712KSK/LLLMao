@@ -60,6 +60,7 @@ class MessageRead(BaseModel):
     chat_id: int
     role: str
     content: str
+    model_name: str | None = None
     created_at: datetime
     attachments: list[ChatAttachmentRead] = Field(default_factory=list)
 

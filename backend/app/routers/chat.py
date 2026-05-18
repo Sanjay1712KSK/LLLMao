@@ -74,6 +74,6 @@ async def stream_chat(payload: ChatRequest, db: Session = Depends(get_db)) -> St
         finally:
             content = "".join(assistant_content).strip()
             if content:
-                chat_service.add_message(db, payload.chat_id, "assistant", content)
+                chat_service.add_message(db, payload.chat_id, "assistant", content, model_name=payload.model)
 
     return StreamingResponse(event_stream(), media_type="text/plain; charset=utf-8")

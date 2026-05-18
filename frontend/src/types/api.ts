@@ -55,6 +55,7 @@ export type Message = {
   chat_id: number;
   role: 'user' | 'assistant' | 'system';
   content: string;
+  model_name?: string | null;
   created_at: string;
   sources?: RetrievalSource[];
   attachments?: ChatAttachment[];

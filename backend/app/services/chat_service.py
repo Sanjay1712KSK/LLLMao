@@ -57,8 +57,8 @@ def list_messages(db: Session, chat_id: int) -> list[Message]:
     return list(db.scalars(select(Message).where(Message.chat_id == chat_id).order_by(Message.created_at.asc(), Message.id.asc())))
 
 
-def add_message(db: Session, chat_id: int, role: str, content: str) -> Message:
-    message = Message(chat_id=chat_id, role=role, content=content)
+def add_message(db: Session, chat_id: int, role: str, content: str, model_name: str | None = None) -> Message:
+    message = Message(chat_id=chat_id, role=role, content=content, model_name=model_name)
     db.add(message)
     chat = get_chat(db, chat_id)
     if chat is not None:

@@ -217,7 +217,7 @@ async def stream_rag_chat(payload: RagChatRequest, db: Session = Depends(get_db)
         finally:
             content = "".join(assistant_content).strip()
             if content:
-                chat_service.add_message(db, payload.chat_id, "assistant", content)
+                chat_service.add_message(db, payload.chat_id, "assistant", content, model_name=payload.model)
         yield "event: done\ndata: {}\n\n"
 
     return StreamingResponse(event_stream(), media_type="text/event-stream")

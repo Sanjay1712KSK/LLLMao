@@ -38,6 +38,12 @@ def migrate_sqlite_schema() -> None:
         if "updated_at" not in columns:
             connection.execute(text("ALTER TABLE chats ADD COLUMN updated_at DATETIME"))
         connection.execute(text("UPDATE chats SET updated_at = COALESCE(created_at, CURRENT_TIMESTAMP) WHERE updated_at IS NULL"))
+        
+        # Migrate messages table
+        if "messages" in inspector.get_table_names():
+            msg_columns = {column["name"] for column in inspector.get_columns("messages")}
+            if "model_name" not in msg_columns:
+                connection.execute(text("ALTER TABLE messages ADD COLUMN model_name VARCHAR(120)"))
 
 
 def sqlite_integrity_check() -> None:

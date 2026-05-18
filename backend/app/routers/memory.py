@@ -141,7 +141,7 @@ async def intelligent_chat(payload: IntelligentChatRequest, db: Session = Depend
         finally:
             content = "".join(assistant_content).strip()
             if content:
-                chat_service.add_message(db, payload.chat_id, "assistant", content)
+                chat_service.add_message(db, payload.chat_id, "assistant", content, model_name=payload.model)
                 summarizer = ConversationSummarizer()
                 summary = summarizer.summarize_messages(
                     [{"role": "user", "content": payload.message}, {"role": "assistant", "content": content}],

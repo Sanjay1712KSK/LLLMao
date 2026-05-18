@@ -4,13 +4,15 @@ import { BookOpen, FileText, ImagePlus, RotateCw, TerminalSquare } from 'lucide-
 import { useAutoScroll } from '../hooks/useAutoScroll';
 import { useChatStore } from '../store/chatStore';
 import { useWorkspaceStore } from '../store/workspaceStore';
+import { useSettingsStore } from '../store/settingsStore';
 import type { RetrievalSource } from '../types/api';
 import { API_BASE_URL } from '../services/api';
 import { MarkdownMessage } from './MarkdownMessage';
 import { AudioPlayer } from './audio/AudioPlayer';
 
 export function ChatView() {
-  const { messages, isStreaming, health, error, bootstrap } = useChatStore();
+  const { messages, isStreaming, health, error, bootstrap, selectedModel } = useChatStore();
+  const username = useSettingsStore((state) => state.diagnostics?.username) || 'You';
   const activeWorkspaceId = useWorkspaceStore((state) => state.activeWorkspaceId);
   const workspaces = useWorkspaceStore((state) => state.workspaces);
   const activeWorkspace = workspaces.find((workspace) => workspace.id === activeWorkspaceId);
@@ -34,7 +36,7 @@ export function ChatView() {
 
   return (
     <main className="min-h-0 flex-1 overflow-y-auto scroll-smooth px-4 py-8">
-      <div className="mx-auto max-w-4xl space-y-7">
+      <div className="mx-auto max-w-4xl space-y-5">
         {!messages.length && (
           <EmptyState workspaceName={activeWorkspace?.name} />
         )}
@@ -42,17 +44,17 @@ export function ChatView() {
           <article
             key={message.id}
             className={clsx(
-              'flex gap-4 rounded-2xl px-3 py-3',
+              'flex gap-4 rounded-2xl px-4 py-3',
               message.role === 'assistant' ? 'bg-transparent' : 'bg-subtle',
             )}
           >
             <div
               className={clsx(
-                'mt-1 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-xs font-semibold',
+                'mt-0.5 flex h-8 shrink-0 items-center justify-center rounded-lg px-2 text-xs font-semibold',
                 message.role === 'assistant' ? 'bg-accent text-accent-ink' : 'bg-subtle text-ink',
               )}
             >
-              {message.role === 'assistant' ? 'AI' : 'You'}
+              {message.role === 'assistant' ? (message.model_name || selectedModel || 'AI') : username}
             </div>
             <div className="min-w-0 flex-1 text-sm leading-7 text-ink">
               {message.content ? (
